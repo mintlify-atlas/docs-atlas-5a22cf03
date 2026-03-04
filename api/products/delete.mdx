@@ -1,0 +1,117 @@
+---
+title: "Delete Product"
+api: "DELETE /products/{id}"
+---
+
+Delete a product from the system.
+
+## Authentication
+
+This endpoint requires authentication with the `admin` role.
+
+## Path Parameters
+
+<ParamField path="id" type="integer" required>
+  The unique identifier of the product to delete
+</ParamField>
+
+## Response
+
+<ResponseField name="message" type="string">
+  Confirmation message indicating successful deletion
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X DELETE https://api.example.com/products/123 \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.example.com/products/123', {
+  method: 'DELETE',
+  headers: {
+    'Authorization': 'Bearer YOUR_TOKEN'
+  }
+});
+
+const result = await response.json();
+```
+
+```python Python
+import requests
+
+response = requests.delete(
+    'https://api.example.com/products/123',
+    headers={'Authorization': 'Bearer YOUR_TOKEN'}
+)
+
+result = response.json()
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Response
+{
+  "message": "Product removed successfully"
+}
+```
+
+</ResponseExample>
+
+## Errors
+
+<ResponseField name="statusCode" type="integer">
+  HTTP status code
+</ResponseField>
+
+<ResponseField name="message" type="array">
+  Array of error messages
+</ResponseField>
+
+<ResponseExample>
+
+```json 404 - Product Not Found
+{
+  "statusCode": 404,
+  "message": ["Product not found"]
+}
+```
+
+```json 400 - Invalid ID
+{
+  "statusCode": 400,
+  "message": "Invalid ID format",
+  "error": "Bad Request"
+}
+```
+
+```json 401 - Unauthorized
+{
+  "statusCode": 401,
+  "message": "Unauthorized"
+}
+```
+
+```json 403 - Forbidden
+{
+  "statusCode": 403,
+  "message": "Forbidden resource",
+  "error": "Forbidden"
+}
+```
+
+</ResponseExample>
+
+## Important Notes
+
+<Warning>
+  This action is irreversible. Once a product is deleted, it cannot be recovered.
+</Warning>
+
+<Info>
+  Make sure to remove any references to this product from orders or other entities before deletion to maintain data integrity.
+</Info>

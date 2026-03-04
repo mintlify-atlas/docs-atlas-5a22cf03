@@ -1,0 +1,175 @@
+---
+title: "Upload Product Image"
+api: "POST /products/upload-image"
+---
+
+Upload an image file for use with products. This endpoint handles file uploads and returns the uploaded file information.
+
+## Authentication
+
+This endpoint requires authentication with the `admin` role.
+
+## Request
+
+This endpoint accepts multipart/form-data for file uploads.
+
+<ParamField body="file" type="file" required>
+  The image file to upload. Must be provided as a file in the multipart form data with the field name `file`.
+</ParamField>
+
+## Response
+
+The response structure depends on the upload service implementation. Typically includes:
+
+<ResponseField name="filename" type="string">
+  The name of the uploaded file
+</ResponseField>
+
+<ResponseField name="url" type="string">
+  The URL or path where the file can be accessed
+</ResponseField>
+
+<ResponseField name="size" type="number">
+  The size of the uploaded file in bytes
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X POST https://api.example.com/products/upload-image \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "file=@/path/to/espresso.jpg"
+```
+
+```javascript JavaScript
+const formData = new FormData();
+const fileInput = document.querySelector('input[type="file"]');
+formData.append('file', fileInput.files[0]);
+
+const response = await fetch('https://api.example.com/products/upload-image', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_TOKEN'
+  },
+  body: formData
+});
+
+const result = await response.json();
+```
+
+```javascript Node.js
+const FormData = require('form-data');
+const fs = require('fs');
+
+const form = new FormData();
+form.append('file', fs.createReadStream('/path/to/espresso.jpg'));
+
+const response = await fetch('https://api.example.com/products/upload-image', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_TOKEN',
+    ...form.getHeaders()
+  },
+  body: form
+});
+
+const result = await response.json();
+```
+
+```python Python
+import requests
+
+with open('/path/to/espresso.jpg', 'rb') as file:
+    files = {'file': file}
+    headers = {'Authorization': 'Bearer YOUR_TOKEN'}
+    
+    response = requests.post(
+        'https://api.example.com/products/upload-image',
+        headers=headers,
+        files=files
+    )
+    
+    result = response.json()
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Response
+{
+  "filename": "espresso-1234567890.jpg",
+  "url": "/uploads/espresso-1234567890.jpg",
+  "size": 245678
+}
+```
+
+</ResponseExample>
+
+## Errors
+
+<ResponseField name="statusCode" type="integer">
+  HTTP status code
+</ResponseField>
+
+<ResponseField name="message" type="string">
+  Error message describing what went wrong
+</ResponseField>
+
+<ResponseExample>
+
+```json 400 - No File Provided
+{
+  "statusCode": 400,
+  "message": "The image is required",
+  "error": "Bad Request"
+}
+```
+
+```json 401 - Unauthorized
+{
+  "statusCode": 401,
+  "message": "Unauthorized"
+}
+```
+
+```json 403 - Forbidden
+{
+  "statusCode": 403,
+  "message": "Forbidden resource",
+  "error": "Forbidden"
+}
+```
+
+</ResponseExample>
+
+## Usage Workflow
+
+<Steps>
+  <Step title="Upload Image">
+    First, upload the image file using this endpoint. Save the returned filename or URL.
+  </Step>
+  
+  <Step title="Create/Update Product">
+    Use the returned filename/URL in the `image` field when creating or updating a product.
+    
+    ```json
+    {
+      "name": "Espresso Coffee",
+      "price": 12.99,
+      "image": "espresso-1234567890.jpg",
+      "inventory": 50,
+      "categoryId": 1
+    }
+    ```
+  </Step>
+</Steps>
+
+## File Requirements
+
+<Info>
+  - Field name must be `file`
+  - Accepted formats depend on server configuration (typically JPG, PNG, GIF, WebP)
+  - Maximum file size depends on server configuration
+  - Images are typically stored with a unique filename to prevent conflicts
+</Info>

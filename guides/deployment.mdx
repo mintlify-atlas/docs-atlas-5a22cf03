@@ -1,0 +1,768 @@
+---
+title: Deployment
+description: Deploy the POS Nest API to production environments
+---
+
+This guide covers deploying the POS Nest API to production, including build configuration, database migrations, and hosting options.
+
+## Production Build Process
+
+### Building for Production
+
+<Steps>
+  <Step title="Install dependencies">
+    ```bash
+    npm install --production=false
+    ```
+    
+    This installs all dependencies including devDependencies needed for the build.
+  </Step>
+  
+  <Step title="Run the production build">
+    ```bash
+    npm run build
+    ```
+    
+    This command:
+    - Compiles TypeScript to JavaScript using the NestJS CLI
+    - Outputs compiled files to the `dist/` directory
+    - Generates source maps for debugging
+    - Removes comments and applies TypeScript compiler options from `tsconfig.json`
+  </Step>
+  
+  <Step title="Verify the build">
+    ```bash
+    ls -la dist/
+    ```
+    
+    You should see:
+    - `main.js` - Application entry point
+    - Entity files (`*.entity.js`)
+    - Module files (`*.module.js`)
+    - Controller and service files
+  </Step>
+</Steps>
+
+### Build Configuration
+
+The build uses the following TypeScript configuration from `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "ES2023",
+    "outDir": "./dist",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true
+  }
+}
+```
+
+<Note>
+  The compiled output is optimized for Node.js production environments with ES2023 target and modern module resolution.
+</Note>
+
+## Environment Variable Configuration for Production
+
+### Required Environment Variables
+
+Ensure all required environment variables are set in your production environment:
+
+```bash
+# Server Configuration
+PORT=3000
+NODE_ENV=production
+
+# Database Configuration
+DATABASE_HOST=your-production-db-host.com
+DATABASE_PORT=5432
+DATABASE_USER=prod_db_user
+DATABASE_PASS=strong_production_password
+DATABASE_NAME=pos_nest_prod
+
+# Supabase Configuration
+SUPABASE_URL=https://your-prod-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-production-service-role-key
+```
+
+<Warning>
+  **Security Best Practices:**
+  - Never commit `.env` files to version control
+  - Use environment-specific secrets management (AWS Secrets Manager, Heroku Config Vars, etc.)
+  - Rotate credentials regularly
+  - Use strong, unique passwords for production databases
+  - Restrict database access to your application's IP addresses only
+</Warning>
+
+### Platform-Specific Configuration
+
+<AccordionGroup>
+  <Accordion title="Heroku">
+    Set environment variables using the Heroku CLI:
+    
+    ```bash
+    heroku config:set DATABASE_HOST=your-db-host.com
+    heroku config:set DATABASE_PORT=5432
+    heroku config:set DATABASE_USER=prod_user
+    heroku config:set DATABASE_PASS=strong_password
+    heroku config:set DATABASE_NAME=pos_nest_prod
+    heroku config:set SUPABASE_URL=https://xxx.supabase.co
+    heroku config:set SUPABASE_SERVICE_ROLE_KEY=your-key
+    ```
+    
+    Or use the Heroku Dashboard: Settings > Config Vars
+  </Accordion>
+  
+  <Accordion title="AWS (Elastic Beanstalk / ECS)">
+    **Elastic Beanstalk:**
+    
+    Create a `.ebextensions/environment.config` file:
+    ```yaml
+    option_settings:
+      aws:elasticbeanstalk:application:environment:
+        NODE_ENV: production
+        DATABASE_HOST: your-rds-endpoint.amazonaws.com
+        DATABASE_PORT: 5432
+    ```
+    
+    Use AWS Secrets Manager for sensitive data.
+    
+    **ECS:**
+    
+    Define environment variables in your task definition JSON or use AWS Systems Manager Parameter Store.
+  </Accordion>
+  
+  <Accordion title="Docker">
+    Use environment variables in your `docker-compose.yml`:
+    
+    ```yaml
+    version: '3.8'
+    services:
+      api:
+        image: pos-nest-api:latest
+        environment:
+          - NODE_ENV=production
+          - DATABASE_HOST=db
+          - DATABASE_PORT=5432
+          - DATABASE_USER=${DB_USER}
+          - DATABASE_PASS=${DB_PASS}
+          - DATABASE_NAME=pos_nest
+        env_file:
+          - .env.production
+    ```
+    
+    Or pass them at runtime:
+    ```bash
+    docker run -e DATABASE_HOST=db -e DATABASE_PORT=5432 pos-nest-api
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Database Migration in Production
+
+<Warning>
+  The application currently uses `synchronize: true` in TypeORM configuration, which automatically syncs the database schema. **This is dangerous in production** as it can cause data loss.
+</Warning>
+
+### Disable Auto-Sync for Production
+
+Modify `src/config/typeorm.config.ts` to disable synchronization in production:
+
+```typescript
+export const typeOrmConfig = (
+  configService: ConfigService,
+): TypeOrmModuleOptions => ({
+  type: 'postgres',
+  host: configService.get('DATABASE_HOST'),
+  port: configService.get('DATABASE_PORT'),
+  username: configService.get('DATABASE_USER'),
+  password: configService.get('DATABASE_PASS'),
+  database: configService.get('DATABASE_NAME'),
+  ssl: {
+    rejectUnauthorized: configService.get('NODE_ENV') === 'production',
+  },
+  logging: configService.get('NODE_ENV') !== 'production',
+  entities: [join(__dirname, '..', '**', '*.entity.{ts,js}')],
+  synchronize: configService.get('NODE_ENV') !== 'production', // Disable in production
+  migrations: [join(__dirname, '..', 'migrations', '*.{ts,js}')],
+  migrationsRun: configService.get('NODE_ENV') === 'production',
+});
+```
+
+### Using TypeORM Migrations
+
+<Steps>
+  <Step title="Add migration scripts to package.json">
+    ```json
+    {
+      "scripts": {
+        "typeorm": "typeorm-ts-node-commonjs",
+        "migration:generate": "npm run typeorm -- migration:generate -d src/config/typeorm.config.ts",
+        "migration:run": "npm run typeorm -- migration:run -d src/config/typeorm.config.ts",
+        "migration:revert": "npm run typeorm -- migration:revert -d src/config/typeorm.config.ts"
+      }
+    }
+    ```
+  </Step>
+  
+  <Step title="Generate migrations from entity changes">
+    ```bash
+    npm run migration:generate -- src/migrations/InitialSchema
+    ```
+  </Step>
+  
+  <Step title="Run migrations in production">
+    ```bash
+    npm run migration:run
+    ```
+    
+    Or set `migrationsRun: true` to run automatically on application start.
+  </Step>
+</Steps>
+
+### Initial Database Setup in Production
+
+For first-time deployment:
+
+<Steps>
+  <Step title="Create the production database">
+    ```sql
+    CREATE DATABASE pos_nest_prod;
+    ```
+  </Step>
+  
+  <Step title="Run the application to create schema">
+    If using `synchronize: true` for initial setup:
+    
+    ```bash
+    NODE_ENV=development npm run start:prod
+    ```
+    
+    Then stop the app and disable `synchronize` before restarting.
+  </Step>
+  
+  <Step title="Seed initial data (optional)">
+    ```bash
+    npm run seed
+    ```
+  </Step>
+</Steps>
+
+## Hosting Options
+
+### Heroku
+
+<Steps>
+  <Step title="Install Heroku CLI">
+    ```bash
+    # macOS
+    brew tap heroku/brew && brew install heroku
+    
+    # Other platforms: https://devcenter.heroku.com/articles/heroku-cli
+    ```
+  </Step>
+  
+  <Step title="Login and create app">
+    ```bash
+    heroku login
+    heroku create your-app-name
+    ```
+  </Step>
+  
+  <Step title="Add PostgreSQL addon">
+    ```bash
+    heroku addons:create heroku-postgresql:essential-0
+    ```
+  </Step>
+  
+  <Step title="Configure environment variables">
+    ```bash
+    heroku config:set NODE_ENV=production
+    heroku config:set SUPABASE_URL=https://xxx.supabase.co
+    heroku config:set SUPABASE_SERVICE_ROLE_KEY=your-key
+    ```
+    
+    Heroku automatically sets `DATABASE_URL` from the PostgreSQL addon.
+  </Step>
+  
+  <Step title="Create Procfile">
+    ```
+    web: npm run start:prod
+    ```
+  </Step>
+  
+  <Step title="Deploy">
+    ```bash
+    git push heroku main
+    ```
+  </Step>
+</Steps>
+
+<Note>
+  If using `DATABASE_URL`, you'll need to parse it in your TypeORM config:
+  ```typescript
+  const databaseUrl = configService.get('DATABASE_URL');
+  if (databaseUrl) {
+    // Parse DATABASE_URL and extract host, port, user, password, database
+  }
+  ```
+</Note>
+
+### AWS (Elastic Beanstalk)
+
+<Steps>
+  <Step title="Install EB CLI">
+    ```bash
+    pip install awsebcli
+    ```
+  </Step>
+  
+  <Step title="Initialize EB application">
+    ```bash
+    eb init -p node.js-18 pos-nest-api
+    ```
+  </Step>
+  
+  <Step title="Create environment">
+    ```bash
+    eb create production-env
+    ```
+  </Step>
+  
+  <Step title="Set environment variables">
+    ```bash
+    eb setenv NODE_ENV=production DATABASE_HOST=xxx DATABASE_PORT=5432
+    ```
+  </Step>
+  
+  <Step title="Deploy">
+    ```bash
+    eb deploy
+    ```
+  </Step>
+</Steps>
+
+### Docker Deployment
+
+Create a `Dockerfile`:
+
+```dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy source code
+COPY . .
+
+# Build application
+RUN npm run build
+
+# Create public directory for static assets
+RUN mkdir -p public
+
+# Expose port
+EXPOSE 3000
+
+# Start application
+CMD ["npm", "run", "start:prod"]
+```
+
+Create a `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASS=postgres
+      - DATABASE_NAME=pos_nest
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=pos_nest
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+```
+
+Deploy:
+
+```bash
+# Build and start
+docker-compose up -d
+
+# View logs
+docker-compose logs -f api
+
+# Stop
+docker-compose down
+```
+
+## CORS and Security Considerations
+
+### CORS Configuration
+
+The application has CORS enabled in `src/main.ts`:
+
+```typescript
+app.enableCors({
+  origin: true, // Allow all origins
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+  allowedHeaders: 'Content-Type,Authorization',
+  credentials: true,
+});
+```
+
+<Warning>
+  The current configuration allows **all origins** (`origin: true`). For production, restrict to specific domains:
+  
+  ```typescript
+  app.enableCors({
+    origin: [
+      'https://yourdomain.com',
+      'https://www.yourdomain.com',
+      process.env.FRONTEND_URL,
+    ],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type,Authorization',
+    credentials: true,
+  });
+  ```
+</Warning>
+
+### Security Best Practices
+
+<Steps>
+  <Step title="Helmet for security headers">
+    Install and configure Helmet:
+    
+    ```bash
+    npm install helmet
+    ```
+    
+    ```typescript
+    // src/main.ts
+    import helmet from 'helmet';
+    
+    app.use(helmet());
+    ```
+  </Step>
+  
+  <Step title="Rate limiting">
+    Install throttler:
+    
+    ```bash
+    npm install @nestjs/throttler
+    ```
+    
+    Configure in `app.module.ts`:
+    
+    ```typescript
+    import { ThrottlerModule } from '@nestjs/throttler';
+    
+    @Module({
+      imports: [
+        ThrottlerModule.forRoot([{
+          ttl: 60000,
+          limit: 10,
+        }]),
+        // ... other imports
+      ],
+    })
+    ```
+  </Step>
+  
+  <Step title="HTTPS enforcement">
+    Ensure your hosting platform terminates SSL/TLS. Most platforms (Heroku, AWS) do this automatically.
+    
+    For self-hosted deployments, use a reverse proxy like Nginx:
+    
+    ```nginx
+    server {
+      listen 443 ssl;
+      server_name api.yourdomain.com;
+      
+      ssl_certificate /path/to/cert.pem;
+      ssl_certificate_key /path/to/key.pem;
+      
+      location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+      }
+    }
+    ```
+  </Step>
+  
+  <Step title="Environment variable validation">
+    Validate required environment variables on startup:
+    
+    ```typescript
+    // src/config/env.validation.ts
+    import { plainToClass } from 'class-transformer';
+    import { IsString, IsNumber, validateSync } from 'class-validator';
+    
+    class EnvironmentVariables {
+      @IsString()
+      DATABASE_HOST: string;
+      
+      @IsNumber()
+      DATABASE_PORT: number;
+      
+      @IsString()
+      SUPABASE_URL: string;
+      
+      @IsString()
+      SUPABASE_SERVICE_ROLE_KEY: string;
+    }
+    
+    export function validate(config: Record<string, unknown>) {
+      const validatedConfig = plainToClass(EnvironmentVariables, config, {
+        enableImplicitConversion: true,
+      });
+      const errors = validateSync(validatedConfig, {
+        skipMissingProperties: false,
+      });
+      
+      if (errors.length > 0) {
+        throw new Error(errors.toString());
+      }
+      return validatedConfig;
+    }
+    ```
+  </Step>
+</Steps>
+
+### Database Security
+
+- Use SSL/TLS for database connections in production
+- Restrict database access to application IPs only
+- Use strong passwords and rotate them regularly
+- Enable database audit logging
+- Set up automated backups
+
+```typescript
+// Production SSL configuration
+ssl: {
+  rejectUnauthorized: true,
+  ca: fs.readFileSync('/path/to/ca-certificate.crt').toString(),
+}
+```
+
+## Health Checks and Monitoring
+
+### Health Check Endpoint
+
+Create a health check endpoint:
+
+```typescript
+// src/app.controller.ts
+import { Controller, Get } from '@nestjs/common';
+import { Public } from './auth/decorators/public.decorator';
+
+@Controller()
+export class AppController {
+  @Public()
+  @Get('health')
+  healthCheck() {
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+    };
+  }
+}
+```
+
+### Monitoring Services
+
+<AccordionGroup>
+  <Accordion title="Application Performance Monitoring">
+    Use APM tools like:
+    - **New Relic**: Full-stack monitoring
+    - **DataDog**: Infrastructure and application monitoring
+    - **Sentry**: Error tracking and performance monitoring
+    
+    ```bash
+    npm install @sentry/node
+    ```
+    
+    ```typescript
+    // src/main.ts
+    import * as Sentry from '@sentry/node';
+    
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN,
+      environment: process.env.NODE_ENV,
+    });
+    ```
+  </Accordion>
+  
+  <Accordion title="Log Management">
+    Use structured logging with Winston or Pino:
+    
+    ```bash
+    npm install nest-winston winston
+    ```
+    
+    Configure in `main.ts`:
+    
+    ```typescript
+    import { WinstonModule } from 'nest-winston';
+    import * as winston from 'winston';
+    
+    const app = await NestFactory.create(AppModule, {
+      logger: WinstonModule.createLogger({
+        transports: [
+          new winston.transports.Console({
+            format: winston.format.combine(
+              winston.format.timestamp(),
+              winston.format.json(),
+            ),
+          }),
+        ],
+      }),
+    });
+    ```
+  </Accordion>
+  
+  <Accordion title="Uptime Monitoring">
+    Use services like:
+    - **UptimeRobot**: Free uptime monitoring
+    - **Pingdom**: Advanced monitoring and alerting
+    - **StatusCake**: Uptime and performance monitoring
+    
+    Configure them to check your `/health` endpoint every 1-5 minutes.
+  </Accordion>
+</AccordionGroup>
+
+### Database Monitoring
+
+- Enable slow query logging
+- Monitor connection pool usage
+- Set up alerts for failed connections
+- Track query performance
+
+```typescript
+// Enable logging for production debugging
+logging: process.env.ENABLE_SQL_LOGGING === 'true' ? ['error', 'warn'] : false,
+```
+
+## Post-Deployment Checklist
+
+<Steps>
+  <Step title="Verify environment variables">
+    - [ ] All required environment variables are set
+    - [ ] Database credentials are correct
+    - [ ] Supabase credentials are configured
+    - [ ] PORT is set correctly
+  </Step>
+  
+  <Step title="Test database connectivity">
+    - [ ] Application can connect to the database
+    - [ ] Database schema is created or migrations ran successfully
+    - [ ] Seeded data is present (if applicable)
+  </Step>
+  
+  <Step title="Verify API functionality">
+    - [ ] Health check endpoint responds: `GET /health`
+    - [ ] Authentication works with Supabase
+    - [ ] Test key endpoints (categories, products, transactions)
+  </Step>
+  
+  <Step title="Security checks">
+    - [ ] CORS is configured for specific origins
+    - [ ] SSL/HTTPS is enabled
+    - [ ] Rate limiting is configured
+    - [ ] Security headers are set (Helmet)
+  </Step>
+  
+  <Step title="Monitoring setup">
+    - [ ] Health checks are configured
+    - [ ] Error tracking is enabled (Sentry)
+    - [ ] Log aggregation is working
+    - [ ] Uptime monitoring is active
+  </Step>
+  
+  <Step title="Performance optimization">
+    - [ ] Static assets are served correctly
+    - [ ] Database queries are optimized
+    - [ ] Connection pooling is configured
+    - [ ] Caching is enabled (if applicable)
+  </Step>
+</Steps>
+
+## Troubleshooting Production Issues
+
+<AccordionGroup>
+  <Accordion title="Application crashes on startup">
+    - Check environment variables are set correctly
+    - Verify database connectivity
+    - Check application logs for errors
+    - Ensure all dependencies are installed
+  </Accordion>
+  
+  <Accordion title="Database connection errors">
+    - Verify database credentials
+    - Check database server is accessible from your hosting platform
+    - Ensure SSL settings match database requirements
+    - Check firewall rules and security groups
+  </Accordion>
+  
+  <Accordion title="Authentication failures">
+    - Verify Supabase URL and service role key
+    - Check CORS configuration
+    - Ensure Authorization header is being sent correctly
+    - Test Supabase connection independently
+  </Accordion>
+  
+  <Accordion title="Performance issues">
+    - Enable SQL query logging to identify slow queries
+    - Check database indexes
+    - Monitor memory usage
+    - Consider implementing caching (Redis)
+    - Optimize N+1 query problems
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<Card title="API Reference" icon="code" href="/api/auth/signup">
+  Explore all available API endpoints
+</Card>
+
+<Card title="Environment Setup" icon="gear" href="/guides/environment-setup">
+  Review environment configuration
+</Card>

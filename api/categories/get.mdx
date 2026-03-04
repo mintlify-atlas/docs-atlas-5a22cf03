@@ -1,0 +1,134 @@
+---
+title: 'Get Category'
+api: 'GET /categories/{id}'
+---
+
+Retrieve a specific category by ID.
+
+## Authentication
+
+This endpoint is **public** and does not require authentication.
+
+## Path Parameters
+
+<ParamField path="id" type="integer" required>
+  The unique identifier of the category.
+</ParamField>
+
+## Query Parameters
+
+<ParamField query="products" type="boolean">
+  Include the list of products associated with this category. When set to `true`, the response will include a `products` array ordered by product ID in ascending order.
+</ParamField>
+
+## Response
+
+<ResponseField name="id" type="number">
+  The unique identifier of the category.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  The name of the category.
+</ResponseField>
+
+<ResponseField name="products" type="array">
+  Array of products in this category. Only included when `products=true` query parameter is set.
+  
+  <Expandable title="Product Object">
+    <ResponseField name="id" type="number">
+      The unique identifier of the product.
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      The name of the product.
+    </ResponseField>
+    
+    <ResponseField name="price" type="number">
+      The price of the product.
+    </ResponseField>
+    
+    <ResponseField name="stock" type="number">
+      The stock quantity of the product.
+    </ResponseField>
+    
+    <ResponseField name="categoryId" type="number">
+      The ID of the category this product belongs to.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Example Request
+
+### Basic Request
+
+```bash
+curl -X GET https://api.example.com/categories/1
+```
+
+### With Products
+
+```bash
+curl -X GET https://api.example.com/categories/1?products=true
+```
+
+## Example Response
+
+### Basic Response
+
+```json
+{
+  "id": 1,
+  "name": "Beverages"
+}
+```
+
+### Response with Products
+
+```json
+{
+  "id": 1,
+  "name": "Beverages",
+  "products": [
+    {
+      "id": 1,
+      "name": "Coffee",
+      "price": 4.99,
+      "stock": 50,
+      "categoryId": 1
+    },
+    {
+      "id": 3,
+      "name": "Tea",
+      "price": 3.99,
+      "stock": 30,
+      "categoryId": 1
+    }
+  ]
+}
+```
+
+## Error Responses
+
+### 400 Bad Request
+
+Returned when the ID parameter is invalid.
+
+```json
+{
+  "statusCode": 400,
+  "message": "Validation failed (numeric string is expected)",
+  "error": "Bad Request"
+}
+```
+
+### 404 Not Found
+
+Returned when the category with the specified ID does not exist.
+
+```json
+{
+  "statusCode": 404,
+  "message": "Category not found",
+  "error": "Not Found"
+}
+```

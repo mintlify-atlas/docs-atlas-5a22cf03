@@ -1,0 +1,175 @@
+---
+title: 'Create Admin'
+api: 'POST /auth/create-admin'
+---
+
+Creates a new user account with the 'admin' role. This endpoint requires admin authentication.
+
+<Note>
+  This endpoint requires admin privileges. Only authenticated users with the 'admin' role can create admin accounts.
+</Note>
+
+## Authentication
+
+This endpoint requires a valid JWT access token with admin role.
+
+```
+Authorization: Bearer {access_token}
+```
+
+## Request Body
+
+<ParamField body="email" type="string" required>
+  Admin user's email address. Must be a valid email format.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  Admin user's password. Must be at least 6 characters long.
+</ParamField>
+
+## Response
+
+<ResponseField name="message" type="string">
+  Success message indicating admin user creation status.
+</ResponseField>
+
+<ResponseField name="user" type="object">
+  The created admin user object.
+  
+  <Expandable title="user properties">
+    <ResponseField name="id" type="string">
+      Unique identifier for the admin user.
+    </ResponseField>
+    
+    <ResponseField name="email" type="string">
+      Admin user's email address.
+    </ResponseField>
+    
+    <ResponseField name="role" type="string">
+      User's role, set to 'admin'.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Example
+
+<CodeGroup>
+
+```bash cURL
+curl -X POST https://api.yourapp.com/auth/create-admin \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -d '{
+    "email": "admin@example.com",
+    "password": "securepassword123"
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.yourapp.com/auth/create-admin', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+  },
+  body: JSON.stringify({
+    email: 'admin@example.com',
+    password: 'securepassword123'
+  })
+});
+
+const data = await response.json();
+```
+
+```python Python
+import requests
+
+headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+}
+
+response = requests.post(
+    'https://api.yourapp.com/auth/create-admin',
+    headers=headers,
+    json={
+        'email': 'admin@example.com',
+        'password': 'securepassword123'
+    }
+)
+
+data = response.json()
+```
+
+</CodeGroup>
+
+## Response Examples
+
+<CodeGroup>
+
+```json Success (201)
+{
+  "message": "Admin user created successfully",
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "admin@example.com",
+    "role": "admin"
+  }
+}
+```
+
+```json Error - Unauthorized (401)
+{
+  "statusCode": 401,
+  "message": "Unauthorized",
+  "error": "Unauthorized"
+}
+```
+
+```json Error - Forbidden (403)
+{
+  "statusCode": 403,
+  "message": "Forbidden resource",
+  "error": "Forbidden"
+}
+```
+
+```json Error - Invalid Email (400)
+{
+  "statusCode": 400,
+  "message": [
+    "email must be an email"
+  ],
+  "error": "Bad Request"
+}
+```
+
+```json Error - Password Too Short (400)
+{
+  "statusCode": 400,
+  "message": [
+    "password must be longer than or equal to 6 characters"
+  ],
+  "error": "Bad Request"
+}
+```
+
+```json Error - User Already Exists (400)
+{
+  "statusCode": 400,
+  "message": "User already registered",
+  "error": "Bad Request"
+}
+```
+
+</CodeGroup>
+
+## Notes
+
+- This endpoint requires admin authentication. Only users with the 'admin' role can access this endpoint.
+- The admin user's email is automatically confirmed upon creation.
+- All users created through this endpoint are assigned the 'admin' role.
+- The password must meet minimum security requirements (at least 6 characters).
+- Duplicate email addresses are not allowed.
+- Missing or invalid authorization tokens will result in a 401 Unauthorized response.
+- Valid tokens without admin role will result in a 403 Forbidden response.

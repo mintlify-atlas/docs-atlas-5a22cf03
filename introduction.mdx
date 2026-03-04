@@ -1,0 +1,141 @@
+---
+title: Introduction
+description: A modern Point of Sale (POS) API built with NestJS, TypeORM, and Supabase for scalable retail management
+---
+
+# Introduction to POS Nest API
+
+POS Nest API is a production-ready backend API for Point of Sale systems, built with modern technologies to deliver high performance, security, and scalability for retail businesses.
+
+## What is POS Nest API?
+
+POS Nest API provides a comprehensive backend solution for managing retail operations. It handles everything from product inventory and categorization to transaction processing and coupon management, with built-in authentication and role-based access control powered by Supabase.
+
+The API is built on top of NestJS, a progressive Node.js framework that provides a solid architectural foundation with TypeScript support, dependency injection, and modular design patterns.
+
+## Key Features
+
+### Product Management
+- Complete CRUD operations for products
+- Category-based organization with relational data management
+- Image upload and storage via Supabase Storage
+- Inventory tracking with decimal precision pricing
+- Default image fallback system
+
+### Transaction Processing
+- Secure transaction creation and management
+- Transaction history and reporting
+- Integration with product inventory
+- Date-based tracking using date-fns library
+
+### Coupon System
+- Flexible coupon creation and management
+- Discount application logic
+- Coupon validation and expiration handling
+
+### Authentication & Authorization
+- Supabase Authentication integration
+- Role-based access control (RBAC)
+- Public and protected endpoints
+- JWT-based authentication
+- Admin user management
+
+### Data Validation
+- Request validation using class-validator
+- Type-safe DTOs with class-transformer
+- Whitelist validation to prevent unwanted data
+
+### Image Management
+- Product image upload functionality
+- Integration with Supabase Storage buckets
+- Static file serving for uploaded assets
+
+## Technology Stack
+
+<CardGroup cols={2}>
+  <Card title="NestJS" icon="code">
+    Progressive Node.js framework (v11.0.1) providing enterprise-grade architecture with TypeScript
+  </Card>
+  <Card title="TypeORM" icon="database">
+    Powerful ORM (v0.3.28) for PostgreSQL with entity relationships and migrations
+  </Card>
+  <Card title="Supabase" icon="cloud">
+    Backend-as-a-Service (v2.97.0) providing authentication, storage, and PostgreSQL database
+  </Card>
+  <Card title="PostgreSQL" icon="table">
+    Robust relational database with SSL support for secure connections
+  </Card>
+</CardGroup>
+
+### Additional Technologies
+
+- **class-validator & class-transformer**: Runtime validation and transformation
+- **date-fns**: Modern date utility library for transaction timestamps
+- **pg**: PostgreSQL client for Node.js
+- **Express**: Web server platform with CORS enabled
+
+## Use Cases
+
+POS Nest API is ideal for:
+
+<Steps>
+  <Step title="Retail Stores">
+    Small to medium retail businesses needing a modern POS system with inventory management
+  </Step>
+  <Step title="E-commerce Integration">
+    Online stores requiring a robust backend for product catalogs and order processing
+  </Step>
+  <Step title="Multi-location Businesses">
+    Businesses with multiple locations needing centralized product and transaction management
+  </Step>
+  <Step title="Custom POS Solutions">
+    Developers building custom point-of-sale frontends who need a ready-to-use backend API
+  </Step>
+</Steps>
+
+## Architecture Overview
+
+The application follows NestJS best practices with a modular architecture:
+
+```typescript
+// Core modules from src/app.module.ts
+- AuthModule          // Supabase authentication & RBAC
+- CategoriesModule    // Product categorization
+- ProductsModule      // Product inventory management
+- TransactionsModule  // Sales transaction processing
+- CouponsModule       // Discount coupon system
+- UploadImageModule   // Image upload to Supabase Storage
+```
+
+### Global Security
+
+The API implements defense-in-depth security:
+
+- **SupabaseAuthGuard**: Global authentication guard protecting all endpoints by default
+- **RolesGuard**: Role-based authorization for admin-only operations
+- **Public Decorator**: Explicit opt-in for public endpoints (signup, signin)
+- **CORS Configuration**: Configurable cross-origin resource sharing
+- **SSL Database Connections**: Encrypted connections to PostgreSQL
+
+<Note>
+All endpoints are protected by default. Use the `@Public()` decorator to explicitly mark endpoints as accessible without authentication.
+</Note>
+
+## API Design Principles
+
+- **RESTful Architecture**: Follows REST conventions for predictable API design
+- **Type Safety**: Full TypeScript coverage with strict validation
+- **Validation Pipelines**: Automatic request validation with whitelisting
+- **Error Handling**: Structured error responses
+- **Entity Relationships**: Proper foreign key relationships with TypeORM
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get up and running in 5 minutes
+  </Card>
+  <Card title="Installation" icon="download" href="/installation">
+    Detailed installation and configuration guide
+  </Card>
+</CardGroup>

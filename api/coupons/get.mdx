@@ -1,0 +1,112 @@
+---
+title: 'Get Coupon'
+api: 'GET /coupons/{id}'
+description: 'Retrieve a specific coupon by ID'
+---
+
+<Warning>
+  This endpoint requires admin authentication. Include a valid admin JWT token in the Authorization header.
+</Warning>
+
+## Path Parameters
+
+<ParamField path="id" type="number" required>
+  The unique identifier of the coupon to retrieve. Must be a valid positive integer.
+</ParamField>
+
+## Response
+
+Returns the coupon object with the specified ID.
+
+<ResponseField name="id" type="number">
+  The unique identifier for the coupon
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  The coupon name/code
+</ResponseField>
+
+<ResponseField name="percentage" type="number">
+  The discount percentage (1-100)
+</ResponseField>
+
+<ResponseField name="expirationDate" type="string">
+  The expiration date
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X GET https://api.example.com/coupons/1 \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.example.com/coupons/1', {
+  method: 'GET',
+  headers: {
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN'
+  }
+});
+
+const coupon = await response.json();
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    'https://api.example.com/coupons/1',
+    headers={
+        'Authorization': 'Bearer YOUR_ADMIN_TOKEN'
+    }
+)
+
+coupon = response.json()
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Success Response
+{
+  "id": 1,
+  "name": "SUMMER2026",
+  "percentage": 25,
+  "expirationDate": "2026-08-31"
+}
+```
+
+```json Coupon Not Found
+{
+  "message": "Coupon not found",
+  "error": "Not Found",
+  "statusCode": 404
+}
+```
+
+```json Invalid ID Format
+{
+  "message": "Validation failed (numeric string is expected)",
+  "error": "Bad Request",
+  "statusCode": 400
+}
+```
+
+```json Unauthorized
+{
+  "message": "Unauthorized",
+  "statusCode": 401
+}
+```
+
+</ResponseExample>
+
+## Validation
+
+The ID parameter is validated using `IdValidationPipe`, which ensures:
+- The ID is a numeric string
+- The ID represents a valid positive integer
+
+Invalid ID formats (e.g., negative numbers, non-numeric strings, decimals) will return a 400 Bad Request error.

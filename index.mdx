@@ -1,97 +1,330 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "POS Nest API Documentation"
+description: "A modern, scalable Point of Sale REST API built with NestJS"
+mode: "custom"
 ---
 
-## Setting up
+<div className="relative overflow-hidden bg-gradient-to-br from-[#de2850] via-[#c41e45] to-[#aa1a3a] dark:from-[#de2850] dark:via-[#c41e45] dark:to-[#aa1a3a] py-20">
+  <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-center">
+      <div className="lg:col-span-7">
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
+          POS Nest API Documentation
+        </h1>
+        <p className="text-lg sm:text-xl text-white/90 mb-8 max-w-2xl">
+          Build powerful point of sale applications with our NestJS-powered REST API. Complete with authentication, product management, transactions, and coupon support.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <a 
+            href="/quickstart" 
+            className="inline-flex items-center px-6 py-3 rounded-full bg-white text-[#de2850] font-semibold hover:bg-gray-100 transition-colors no-underline"
+          >
+            Get Started
+            <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+          <a 
+            href="/api/auth/signup" 
+            className="inline-flex items-center px-6 py-3 rounded-full border-2 border-white/30 bg-white/10 text-white font-semibold hover:bg-white/20 transition-colors no-underline"
+          >
+            API Reference
+          </a>
+        </div>
+      </div>
+      <div className="hidden lg:block lg:col-span-5">
+        <div className="relative">
+          <div className="absolute inset-0 bg-white/10 rounded-2xl backdrop-blur-sm"></div>
+          <div className="relative p-6 text-white/90 font-mono text-sm">
+            <div className="mb-4">
+              <span className="text-green-300">POST</span> /auth/signin
+            </div>
+            <div className="mb-4">
+              <span className="text-blue-300">GET</span> /products
+            </div>
+            <div className="mb-4">
+              <span className="text-yellow-300">POST</span> /transactions
+            </div>
+            <div>
+              <span className="text-purple-300">PATCH</span> /coupons/:id
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-Get your documentation site up and running in minutes.
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="mb-12">
+    <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-3">
+      Quick Start
+    </h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 mb-8">
+      Get your POS Nest API up and running in minutes with these simple steps.
+    </p>
+  </div>
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+  <Steps>
+    <Step title="Clone and Install">
+      Clone the repository and install dependencies:
+      
+      ```bash
+      git clone https://github.com/SRT2801/pos-nest.git
+      cd pos-nest
+      npm install
+      ```
+    </Step>
+    
+    <Step title="Configure Environment">
+      Set up your environment variables for database and Supabase authentication:
+      
+      ```bash
+      # Database configuration
+      DATABASE_HOST=localhost
+      DATABASE_PORT=5432
+      DATABASE_USER=postgres
+      DATABASE_PASSWORD=your_password
+      DATABASE_NAME=pos_nest
+      
+      # Supabase configuration
+      SUPABASE_URL=your_supabase_url
+      SUPABASE_KEY=your_supabase_key
+      ```
+      
+      <Note>
+        You'll need a Supabase account for authentication. Visit [supabase.com](https://supabase.com) to create one.
+      </Note>
+    </Step>
+    
+    <Step title="Start the Server">
+      Run the development server:
+      
+      ```bash
+      npm run start:dev
+      ```
+      
+      The API will be available at `http://localhost:3000`
+    </Step>
+    
+    <Step title="Make Your First Request">
+      Create a user account and get an access token:
+      
+      ```bash
+      curl -X POST http://localhost:3000/auth/signup \
+        -H "Content-Type: application/json" \
+        -d '{
+          "email": "user@example.com",
+          "password": "securePassword123"
+        }'
+      ```
+      
+      <Accordion title="Example Response">
+        ```json
+        {
+          "message": "User created successfully",
+          "user": {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "email": "user@example.com",
+            "role": "user"
+          }
+        }
+        ```
+      </Accordion>
+    </Step>
+  </Steps>
+</div>
 
-## Make it yours
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="mb-8">
+    <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-3">
+      Explore by Topic
+    </h2>
+    <p className="text-base text-gray-600 dark:text-gray-400">
+      Dive into specific areas of the API to build your point of sale solution.
+    </p>
+  </div>
 
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
-  </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
+  <CardGroup cols={2}>
     <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
+      title="Authentication"
+      icon="lock"
+      href="/api/auth/signup"
+    >
+      Secure your API with Supabase-powered authentication and role-based access control.
+    </Card>
+    <Card
+      title="Product Management"
+      icon="box"
+      href="/api/products/create"
+    >
+      Create, update, and organize products with categories and inventory tracking.
+    </Card>
+    <Card
+      title="Transactions"
+      icon="receipt"
+      href="/api/transactions/create"
+    >
+      Process sales transactions with detailed line items and automatic calculations.
+    </Card>
+    <Card
+      title="Coupons & Discounts"
+      icon="ticket"
+      href="/api/coupons/create"
+    >
+      Implement promotional campaigns with flexible coupon codes and expiration dates.
+    </Card>
+  </CardGroup>
+</div>
 
-## Create beautiful pages
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="mb-8">
+    <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-3">
+      Core Features
+    </h2>
+    <p className="text-base text-gray-600 dark:text-gray-400">
+      Everything you need to build a complete point of sale system.
+    </p>
+  </div>
 
-Everything you need to create world-class documentation.
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="p-6 rounded-2xl border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#1a1d27] hover:border-[#de2850] dark:hover:border-[#de2850] transition-colors">
+      <div className="w-10 h-10 rounded-lg bg-[#de2850]/10 dark:bg-[#de2850]/20 flex items-center justify-center mb-4">
+        <svg className="w-5 h-5 text-[#de2850]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        Role-Based Access
+      </h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        Protect endpoints with admin and user roles powered by Supabase authentication.
+      </p>
+    </div>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+    <div className="p-6 rounded-2xl border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#1a1d27] hover:border-[#de2850] dark:hover:border-[#de2850] transition-colors">
+      <div className="w-10 h-10 rounded-lg bg-[#de2850]/10 dark:bg-[#de2850]/20 flex items-center justify-center mb-4">
+        <svg className="w-5 h-5 text-[#de2850]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        TypeORM Integration
+      </h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        Robust database management with PostgreSQL and TypeORM entities.
+      </p>
+    </div>
 
-## Need inspiration?
+    <div className="p-6 rounded-2xl border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#1a1d27] hover:border-[#de2850] dark:hover:border-[#de2850] transition-colors">
+      <div className="w-10 h-10 rounded-lg bg-[#de2850]/10 dark:bg-[#de2850]/20 flex items-center justify-center mb-4">
+        <svg className="w-5 h-5 text-[#de2850]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        Image Upload
+      </h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        Upload product images with Supabase storage integration.
+      </p>
+    </div>
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+    <div className="p-6 rounded-2xl border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#1a1d27] hover:border-[#de2850] dark:hover:border-[#de2850] transition-colors">
+      <div className="w-10 h-10 rounded-lg bg-[#de2850]/10 dark:bg-[#de2850]/20 flex items-center justify-center mb-4">
+        <svg className="w-5 h-5 text-[#de2850]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        Inventory Tracking
+      </h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        Monitor product stock levels and manage inventory across categories.
+      </p>
+    </div>
+
+    <div className="p-6 rounded-2xl border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#1a1d27] hover:border-[#de2850] dark:hover:border-[#de2850] transition-colors">
+      <div className="w-10 h-10 rounded-lg bg-[#de2850]/10 dark:bg-[#de2850]/20 flex items-center justify-center mb-4">
+        <svg className="w-5 h-5 text-[#de2850]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        Discount Engine
+      </h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        Apply percentage-based coupons with automatic expiration handling.
+      </p>
+    </div>
+
+    <div className="p-6 rounded-2xl border border-gray-200 dark:border-[#27272a] bg-white dark:bg-[#1a1d27] hover:border-[#de2850] dark:hover:border-[#de2850] transition-colors">
+      <div className="w-10 h-10 rounded-lg bg-[#de2850]/10 dark:bg-[#de2850]/20 flex items-center justify-center mb-4">
+        <svg className="w-5 h-5 text-[#de2850]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        Validation & Guards
+      </h3>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        Input validation with class-validator and custom guards for route protection.
+      </p>
+    </div>
+  </div>
+</div>
+
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="mb-8">
+    <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-3">
+      Resources
+    </h2>
+    <p className="text-base text-gray-600 dark:text-gray-400">
+      Additional resources to help you get the most out of POS Nest API.
+    </p>
+  </div>
+
+  <CardGroup cols={3}>
+    <Card
+      title="Architecture Guide"
+      icon="sitemap"
+      href="/concepts/architecture"
+    >
+      Learn about the NestJS module structure and application design.
+    </Card>
+    <Card
+      title="Database Setup"
+      icon="database"
+      href="/guides/database-setup"
+    >
+      Configure PostgreSQL and run migrations for your database.
+    </Card>
+    <Card
+      title="Deployment"
+      icon="rocket"
+      href="/guides/deployment"
+    >
+      Deploy your API to production with best practices and configuration tips.
+    </Card>
+  </CardGroup>
+</div>
+
+<div className="mt-20 mb-16 max-w-5xl mx-auto px-6">
+  <div className="rounded-2xl bg-gradient-to-br from-[#de2850] to-[#c41e45] dark:from-[#de2850] dark:to-[#c41e45] p-8 sm:p-12 text-center">
+    <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
+      Ready to Start Building?
+    </h2>
+    <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
+      Follow our quickstart guide to set up your development environment and make your first API call in minutes.
+    </p>
+    <a 
+      href="/quickstart" 
+      className="inline-flex items-center px-6 py-3 rounded-full bg-white text-[#de2850] font-semibold hover:bg-gray-100 transition-colors no-underline"
+    >
+      Get Started Now
+      <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+      </svg>
+    </a>
+  </div>
+</div>

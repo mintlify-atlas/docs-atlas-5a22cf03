@@ -1,0 +1,384 @@
+---
+title: Database Setup
+description: Configure PostgreSQL and set up your database for the POS Nest API
+---
+
+This guide covers setting up and configuring the PostgreSQL database for the POS Nest API.
+
+## Prerequisites
+
+- PostgreSQL installed (see [Environment Setup](/guides/environment-setup))
+- Environment variables configured
+- Node.js and npm installed
+
+## PostgreSQL Installation and Configuration
+
+### Local PostgreSQL Setup
+
+<Steps>
+  <Step title="Verify PostgreSQL is running">
+    ```bash
+    # Check if PostgreSQL service is running
+    # macOS (Homebrew)
+    brew services list | grep postgresql
+    
+    # Linux (systemd)
+    sudo systemctl status postgresql
+    
+    # Windows
+    # Check Services app for "postgresql-x64-15"
+    ```
+  </Step>
+  
+  <Step title="Access PostgreSQL">
+    ```bash
+    # Connect to PostgreSQL as the default user
+    psql -U postgres
+    
+    # If you need to specify host and port
+    psql -h localhost -p 5432 -U postgres
+    ```
+  </Step>
+  
+  <Step title="Set or verify the postgres user password">
+    If you need to set a password for the postgres user:
+    
+    ```sql
+    ALTER USER postgres WITH PASSWORD 'your_password';
+    ```
+  </Step>
+</Steps>
+
+### Using Supabase Database
+
+<Note>
+  Supabase provides a managed PostgreSQL database. If you're using Supabase for both authentication and database, you can use the database credentials from your Supabase project.
+</Note>
+
+<Steps>
+  <Step title="Get database credentials">
+    In your Supabase dashboard:
+    - Go to Project Settings > Database
+    - Find the "Connection string" section
+    - Use the "URI" or individual connection parameters
+  </Step>
+  
+  <Step title="Update environment variables">
+    ```bash
+    DATABASE_HOST=db.xxxxxxxxxxxxx.supabase.co
+    DATABASE_PORT=5432
+    DATABASE_USER=postgres
+    DATABASE_PASS=your_supabase_db_password
+    DATABASE_NAME=postgres
+    ```
+  </Step>
+</Steps>
+
+## Database Creation
+
+<Steps>
+  <Step title="Connect to PostgreSQL">
+    ```bash
+    psql -U postgres -h localhost
+    ```
+  </Step>
+  
+  <Step title="Create the database">
+    ```sql
+    CREATE DATABASE pos_nest_db;
+    ```
+    
+    For a development and test environment setup:
+    
+    ```sql
+    -- Development database
+    CREATE DATABASE pos_nest_dev;
+    
+    -- Test database
+    CREATE DATABASE pos_nest_test;
+    ```
+  </Step>
+  
+  <Step title="Verify database creation">
+    ```sql
+    \l
+    -- or
+    \list
+    ```
+    
+    You should see your newly created database in the list.
+  </Step>
+  
+  <Step title="Connect to the database">
+    ```sql
+    \c pos_nest_db
+    ```
+  </Step>
+</Steps>
+
+<Note>
+  If you're using Supabase, the database is already created. You'll connect to the default `postgres` database or create a new one through the Supabase SQL Editor.
+</Note>
+
+## Database Schema and Migrations
+
+### Automatic Schema Synchronization
+
+The POS Nest API uses TypeORM with `synchronize: true` enabled in development:
+
+```typescript
+// src/config/typeorm.config.ts
+export const typeOrmConfig = (configService: ConfigService): TypeOrmModuleOptions => ({
+  type: 'postgres',
+  host: configService.get('DATABASE_HOST'),
+  port: configService.get('DATABASE_PORT'),
+  username: configService.get('DATABASE_USER'),
+  password: configService.get('DATABASE_PASS'),
+  database: configService.get('DATABASE_NAME'),
+  ssl: {
+    rejectUnauthorized: false,
+  },
+  logging: false,
+  entities: [join(__dirname, '..', '**', '*.entity.{ts,js}')],
+  synchronize: true, // Auto-creates tables from entities
+});
+```
+
+<Warning>
+  The `synchronize: true` option automatically creates database tables based on your entity definitions. This is convenient for development but should **NEVER** be used in production as it can cause data loss.
+</Warning>
+
+### Schema Creation on First Run
+
+<Steps>
+  <Step title="Ensure database exists and is accessible">
+    Verify your `.env` file has the correct database credentials.
+  </Step>
+  
+  <Step title="Start the application">
+    ```bash
+    npm run start:dev
+    ```
+    
+    TypeORM will automatically:
+    - Connect to your PostgreSQL database
+    - Scan for all `*.entity.ts` files
+    - Create tables based on your entity definitions
+    - Create relationships and indexes
+  </Step>
+  
+  <Step title="Verify tables were created">
+    Connect to your database and list tables:
+    
+    ```bash
+    psql -U postgres -d pos_nest_db
+    ```
+    
+    ```sql
+    \dt
+    ```
+    
+    You should see tables for:
+    - `categories`
+    - `products`
+    - `transactions`
+    - `coupons`
+    - And other entities defined in the application
+  </Step>
+</Steps>
+
+### Production Migrations
+
+For production deployments, disable `synchronize` and use TypeORM migrations:
+
+```typescript
+// Production configuration
+synchronize: false,
+migrationsRun: true,
+migrations: [join(__dirname, '..', 'migrations', '*.{ts,js}')],
+```
+
+To generate and run migrations:
+
+```bash
+# Generate migration from entity changes
+npm run typeorm migration:generate -- -n MigrationName
+
+# Run migrations
+npm run typeorm migration:run
+
+# Revert last migration
+npm run typeorm migration:revert
+```
+
+<Note>
+  You'll need to add these scripts to `package.json` if you plan to use migrations:
+  ```json
+  "typeorm": "typeorm-ts-node-commonjs",
+  "migration:generate": "npm run typeorm -- migration:generate",
+  "migration:run": "npm run typeorm -- migration:run",
+  "migration:revert": "npm run typeorm -- migration:revert"
+  ```
+</Note>
+
+## Seeding Data
+
+The application includes a seeder to populate your database with initial data.
+
+### Running the Seeder
+
+<Steps>
+  <Step title="Ensure database is set up">
+    Make sure your database exists and the application has created the schema (run `npm run start:dev` at least once).
+  </Step>
+  
+  <Step title="Run the seed command">
+    ```bash
+    npm run seed
+    ```
+    
+    This executes the seeder script at `src/seeder.ts` which:
+    - Creates a NestJS application context with the `SeederModule`
+    - Runs the `SeederService.seed()` method
+    - Populates the database with initial data
+    - Closes the application context
+  </Step>
+  
+  <Step title="Verify seeded data">
+    You can verify the data was seeded by:
+    
+    ```sql
+    -- Connect to database
+    psql -U postgres -d pos_nest_db
+    
+    -- Check categories
+    SELECT * FROM categories;
+    
+    -- Check products
+    SELECT * FROM products;
+    
+    -- Check other tables
+    SELECT * FROM transactions;
+    SELECT * FROM coupons;
+    ```
+  </Step>
+</Steps>
+
+<Note>
+  The seeder is idempotent-safe depending on its implementation. Check `src/seeder/seeder.service.ts` to see if it clears existing data or skips already-seeded records.
+</Note>
+
+## Database Connection Testing
+
+### Test Connection on Application Start
+
+<Steps>
+  <Step title="Start the application in development mode">
+    ```bash
+    npm run start:dev
+    ```
+  </Step>
+  
+  <Step title="Watch for connection messages">
+    You should see logs indicating successful database connection. If there are connection errors, they'll appear in the console.
+  </Step>
+  
+  <Step title="Test API health check">
+    ```bash
+    curl http://localhost:3000
+    ```
+    
+    If the application starts successfully, the database connection is working.
+  </Step>
+</Steps>
+
+### Manual Connection Test
+
+Test your database connection directly:
+
+```bash
+# Using psql
+psql -h localhost -p 5432 -U postgres -d pos_nest_db
+
+# Using connection string format
+psql postgresql://postgres:password@localhost:5432/pos_nest_db
+```
+
+### Troubleshooting Connection Issues
+
+<AccordionGroup>
+  <Accordion title="Connection refused">
+    - Verify PostgreSQL is running: `sudo systemctl status postgresql` (Linux) or `brew services list` (macOS)
+    - Check if PostgreSQL is listening on the correct port: `sudo netstat -plnt | grep 5432`
+    - Ensure firewall isn't blocking port 5432
+  </Accordion>
+  
+  <Accordion title="Authentication failed">
+    - Verify username and password in `.env` are correct
+    - Check PostgreSQL's `pg_hba.conf` allows password authentication
+    - Try connecting with `psql` directly to confirm credentials
+  </Accordion>
+  
+  <Accordion title="Database does not exist">
+    - Verify database name in `.env` matches the created database
+    - Create the database if it doesn't exist: `CREATE DATABASE pos_nest_db;`
+    - Check for typos in `DATABASE_NAME` environment variable
+  </Accordion>
+  
+  <Accordion title="SSL connection errors">
+    The application is configured with `ssl: { rejectUnauthorized: false }`. If you need strict SSL:
+    
+    ```typescript
+    ssl: {
+      rejectUnauthorized: true,
+      ca: fs.readFileSync('/path/to/ca-certificate.crt').toString(),
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Database Configuration Reference
+
+The database configuration is defined in `src/config/typeorm.config.ts`:
+
+```typescript
+import { ConfigService } from '@nestjs/config';
+import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { join } from 'path';
+
+export const typeOrmConfig = (
+  configService: ConfigService,
+): TypeOrmModuleOptions => ({
+  type: 'postgres',
+  host: configService.get('DATABASE_HOST'),
+  port: configService.get('DATABASE_PORT'),
+  username: configService.get('DATABASE_USER'),
+  password: configService.get('DATABASE_PASS'),
+  database: configService.get('DATABASE_NAME'),
+  ssl: {
+    rejectUnauthorized: false,
+  },
+  logging: false,
+  entities: [join(__dirname, '..', '**', '*.entity.{ts,js}')],
+  synchronize: true,
+});
+```
+
+### Configuration Options
+
+| Option | Description | Development | Production |
+|--------|-------------|-------------|------------|
+| `synchronize` | Auto-create tables from entities | `true` | `false` |
+| `logging` | Enable SQL query logging | `false` or `true` for debugging | `false` |
+| `ssl` | SSL connection settings | Optional | Recommended |
+| `entities` | Path to entity files | Auto-discovered | Auto-discovered |
+
+## Next Steps
+
+<Card title="Deployment" icon="rocket" href="/guides/deployment">
+  Learn how to deploy your API to production
+</Card>
+
+<Card title="API Reference" icon="code" href="/api/auth/signup">
+  Start using the API endpoints
+</Card>

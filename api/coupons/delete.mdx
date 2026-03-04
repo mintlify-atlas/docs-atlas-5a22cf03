@@ -1,0 +1,92 @@
+---
+title: 'Delete Coupon'
+api: 'DELETE /coupons/{id}'
+description: 'Delete a coupon from the system'
+---
+
+<Warning>
+  This endpoint requires admin authentication. Include a valid admin JWT token in the Authorization header.
+</Warning>
+
+## Path Parameters
+
+<ParamField path="id" type="number" required>
+  The unique identifier of the coupon to delete
+</ParamField>
+
+## Response
+
+Returns a success message when the coupon is deleted.
+
+<ResponseField name="message" type="string">
+  Confirmation message indicating successful deletion
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X DELETE https://api.example.com/coupons/1 \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.example.com/coupons/1', {
+  method: 'DELETE',
+  headers: {
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN'
+  }
+});
+
+const result = await response.json();
+```
+
+```python Python
+import requests
+
+response = requests.delete(
+    'https://api.example.com/coupons/1',
+    headers={
+        'Authorization': 'Bearer YOUR_ADMIN_TOKEN'
+    }
+)
+
+result = response.json()
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Success Response
+{
+  "message": "Coupon removed successfully"
+}
+```
+
+```json Coupon Not Found
+{
+  "message": "Coupon not found",
+  "error": "Not Found",
+  "statusCode": 404
+}
+```
+
+```json Unauthorized
+{
+  "message": "Unauthorized",
+  "statusCode": 401
+}
+```
+
+</ResponseExample>
+
+## Behavior
+
+- The coupon must exist before deletion (returns 404 if not found)
+- The deletion is permanent and cannot be undone
+- Returns a success message upon successful deletion
+- Admin authentication is required
+
+<Note>
+  Make sure you want to permanently delete the coupon before calling this endpoint. There is no way to recover a deleted coupon.
+</Note>

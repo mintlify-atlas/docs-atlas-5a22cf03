@@ -1,0 +1,89 @@
+---
+title: 'Create Category'
+api: 'POST /categories'
+---
+
+Create a new category.
+
+## Authentication
+
+This endpoint requires authentication with the **admin** role.
+
+```bash
+Authorization: Bearer <admin_token>
+```
+
+## Request Body
+
+<ParamField body="name" type="string" required>
+  The name of the category. Cannot be empty. Maximum length: 60 characters.
+</ParamField>
+
+## Response
+
+<ResponseField name="id" type="number">
+  The unique identifier of the created category.
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  The name of the category.
+</ResponseField>
+
+## Example Request
+
+```bash
+curl -X POST https://api.example.com/categories \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Beverages"
+  }'
+```
+
+## Example Response
+
+```json
+{
+  "id": 1,
+  "name": "Beverages"
+}
+```
+
+## Error Responses
+
+### 400 Bad Request
+
+Returned when the request body is invalid.
+
+```json
+{
+  "statusCode": 400,
+  "message": [
+    "The category name cannot be empty."
+  ],
+  "error": "Bad Request"
+}
+```
+
+### 401 Unauthorized
+
+Returned when authentication credentials are missing or invalid.
+
+```json
+{
+  "statusCode": 401,
+  "message": "Unauthorized"
+}
+```
+
+### 403 Forbidden
+
+Returned when the user does not have admin role.
+
+```json
+{
+  "statusCode": 403,
+  "message": "Forbidden resource",
+  "error": "Forbidden"
+}
+```

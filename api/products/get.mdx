@@ -1,0 +1,129 @@
+---
+title: "Get Product"
+api: "GET /products/{id}"
+---
+
+Retrieve detailed information about a specific product by its ID.
+
+## Authentication
+
+This endpoint is public and does not require authentication.
+
+## Path Parameters
+
+<ParamField path="id" type="integer" required>
+  The unique identifier of the product to retrieve
+</ParamField>
+
+## Response
+
+<ResponseField name="id" type="integer">
+  The unique identifier for the product
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  The product name
+</ResponseField>
+
+<ResponseField name="price" type="number">
+  The product price
+</ResponseField>
+
+<ResponseField name="image" type="string">
+  The product image URL or filename
+</ResponseField>
+
+<ResponseField name="inventory" type="number">
+  The quantity in stock
+</ResponseField>
+
+<ResponseField name="categoryId" type="integer">
+  The category ID
+</ResponseField>
+
+<ResponseField name="category" type="object">
+  The category object with full details
+  
+  <Expandable title="Category Object">
+    <ResponseField name="id" type="integer">
+      The category ID
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      The category name
+    </ResponseField>
+    
+    <ResponseField name="image" type="string">
+      The category image
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl https://api.example.com/products/123
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.example.com/products/123');
+const product = await response.json();
+```
+
+```python Python
+import requests
+
+response = requests.get('https://api.example.com/products/123')
+product = response.json()
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Response
+{
+  "id": 123,
+  "name": "Espresso Coffee",
+  "price": 12.99,
+  "image": "espresso.jpg",
+  "inventory": 50,
+  "categoryId": 1,
+  "category": {
+    "id": 1,
+    "name": "Beverages",
+    "image": "beverages.jpg"
+  }
+}
+```
+
+</ResponseExample>
+
+## Errors
+
+<ResponseField name="statusCode" type="integer">
+  HTTP status code
+</ResponseField>
+
+<ResponseField name="message" type="array">
+  Array of error messages
+</ResponseField>
+
+<ResponseExample>
+
+```json 404 - Product Not Found
+{
+  "statusCode": 404,
+  "message": ["Product not found"]
+}
+```
+
+```json 400 - Invalid ID
+{
+  "statusCode": 400,
+  "message": "Invalid ID format",
+  "error": "Bad Request"
+}
+```
+
+</ResponseExample>

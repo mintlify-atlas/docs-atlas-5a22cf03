@@ -1,0 +1,488 @@
+---
+title: Installation
+description: Complete installation and configuration guide for POS Nest API
+---
+
+# Installation Guide
+
+This guide provides detailed instructions for installing and configuring POS Nest API in your development or production environment.
+
+## Prerequisites
+
+Before installing POS Nest API, ensure you have the following prerequisites:
+
+<CardGroup cols={2}>
+  <Card title="Node.js" icon="node">
+    **Version 18.x or higher**
+    
+    Download from [nodejs.org](https://nodejs.org/)
+  </Card>
+  <Card title="PostgreSQL" icon="database">
+    **Version 12 or higher**
+    
+    Or use Supabase for hosted PostgreSQL
+  </Card>
+  <Card title="Package Manager" icon="box">
+    **npm, yarn, or pnpm**
+    
+    Comes with Node.js (npm) or install separately
+  </Card>
+  <Card title="Supabase Account" icon="cloud">
+    **Free tier available**
+    
+    Sign up at [supabase.com](https://supabase.com/)
+  </Card>
+</CardGroup>
+
+<Note>
+This guide assumes you have basic knowledge of Node.js, TypeScript, and REST APIs.
+</Note>
+
+## Installation Steps
+
+### 1. Clone the Repository
+
+First, clone the POS Nest API repository:
+
+```bash
+git clone <repository-url>
+cd pos-nest
+```
+
+### 2. Install Dependencies
+
+Install all required npm packages using your preferred package manager:
+
+<CodeGroup>
+```bash npm
+npm install
+```
+
+```bash yarn
+yarn install
+```
+
+```bash pnpm
+pnpm install
+```
+</CodeGroup>
+
+This will install the following key dependencies:
+
+- **@nestjs/core** (v11.0.1) - NestJS framework core
+- **@nestjs/typeorm** (v11.0.0) - TypeORM integration for NestJS
+- **@supabase/supabase-js** (v2.97.0) - Supabase client library
+- **typeorm** (v0.3.28) - ORM for TypeScript and JavaScript
+- **pg** (v8.18.0) - PostgreSQL client for Node.js
+- **class-validator** (v0.14.3) - Validation decorators
+- **class-transformer** (v0.5.1) - Object transformation
+- **date-fns** (v4.1.0) - Date utility library
+
+### 3. Environment Configuration
+
+Create a `.env` file in the root directory of the project:
+
+```bash
+touch .env
+```
+
+Add the following environment variables to your `.env` file:
+
+```bash .env
+# Server Configuration
+PORT=3000
+
+# PostgreSQL Database Configuration
+DATABASE_HOST=your-database-host.supabase.co
+DATABASE_PORT=5432
+DATABASE_USER=postgres
+DATABASE_PASS=your-database-password
+DATABASE_NAME=postgres
+
+# Supabase Configuration
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_BUCKET=products
+```
+
+#### Environment Variables Explained
+
+<ResponseField name="PORT" type="number" default="3000">
+  The port number where the API server will listen. Configured in `src/main.ts:21`
+</ResponseField>
+
+<ResponseField name="DATABASE_HOST" type="string" required>
+  PostgreSQL database host. For Supabase, find this in your project settings under Database > Connection String
+</ResponseField>
+
+<ResponseField name="DATABASE_PORT" type="number" default="5432">
+  PostgreSQL port (default is 5432)
+</ResponseField>
+
+<ResponseField name="DATABASE_USER" type="string" required>
+  Database username (usually "postgres" for Supabase)
+</ResponseField>
+
+<ResponseField name="DATABASE_PASS" type="string" required>
+  Database password. Set during Supabase project creation
+</ResponseField>
+
+<ResponseField name="DATABASE_NAME" type="string" required>
+  Database name (usually "postgres" for Supabase)
+</ResponseField>
+
+<ResponseField name="SUPABASE_URL" type="string" required>
+  Your Supabase project URL. Found in Supabase Dashboard > Settings > API > Project URL
+</ResponseField>
+
+<ResponseField name="SUPABASE_SERVICE_ROLE_KEY" type="string" required>
+  Supabase service role key for admin operations. Found in Supabase Dashboard > Settings > API > service_role key
+</ResponseField>
+
+<ResponseField name="SUPABASE_BUCKET" type="string" default="products">
+  Supabase Storage bucket name for product images. Used in `src/upload-image/upload-image.service.ts:14`
+</ResponseField>
+
+<Warning>
+**Security Best Practices:**
+- Never commit your `.env` file to version control
+- The `.env` file is already included in `.gitignore`
+- Keep your `SUPABASE_SERVICE_ROLE_KEY` secret - it bypasses Row Level Security
+- Use environment-specific `.env` files for development, staging, and production
+</Warning>
+
+### 4. Supabase Setup
+
+If you're using Supabase (recommended), follow these steps:
+
+<Steps>
+  <Step title="Create a Supabase Project">
+    1. Go to [supabase.com](https://supabase.com/) and sign in
+    2. Click "New Project"
+    3. Enter your project details and set a strong database password
+    4. Wait for the project to be provisioned (usually 1-2 minutes)
+  </Step>
+
+  <Step title="Get Your Connection Details">
+    In your Supabase Dashboard:
+    
+    1. Go to **Settings** > **Database**
+    2. Find the "Connection string" section
+    3. Copy the connection parameters for your `.env` file
+    
+    Alternatively, go to **Settings** > **API**:
+    - Copy the **URL** for `SUPABASE_URL`
+    - Copy the **service_role** key for `SUPABASE_SERVICE_ROLE_KEY`
+  </Step>
+
+  <Step title="Create a Storage Bucket">
+    For product image uploads:
+    
+    1. Go to **Storage** in the Supabase Dashboard
+    2. Click "New bucket"
+    3. Name it `products` (or match your `SUPABASE_BUCKET` env var)
+    4. Set it to **Public** if you want images to be publicly accessible
+    5. Click "Create bucket"
+  </Step>
+
+  <Step title="Configure Authentication">
+    The API uses Supabase Authentication:
+    
+    1. Go to **Authentication** > **Settings**
+    2. Configure your auth settings as needed
+    3. The API uses email/password authentication by default
+    4. You can enable additional providers if desired
+  </Step>
+</Steps>
+
+### 5. Database Setup
+
+The application uses TypeORM with synchronization enabled for development:
+
+```typescript
+// From src/config/typeorm.config.ts
+{
+  type: 'postgres',
+  ssl: {
+    rejectUnauthorized: false,
+  },
+  synchronize: true,  // Auto-creates tables based on entities
+  entities: [join(__dirname, '..', '**', '*.entity.{ts,js}')],
+}
+```
+
+<Warning>
+**Production Warning**: The `synchronize: true` option automatically creates/updates database tables based on your entities. This is convenient for development but **should be disabled in production**. Use migrations instead.
+
+To disable synchronization for production, set `synchronize: false` in `src/config/typeorm.config.ts:19`
+</Warning>
+
+#### Database Entities
+
+The following tables will be automatically created when you start the application:
+
+- **Category** - Product categories (`src/categories/entities/category.entity.ts`)
+- **Product** - Products with inventory (`src/products/entities/product.entity.ts`)
+- **Transaction** - Sales transactions (`src/transactions/entities/transaction.entity.ts`)
+- **Coupon** - Discount coupons (`src/coupons/entities/coupon.entity.ts`)
+
+#### Optional: Seed Database
+
+If your project includes a seeder script:
+
+<CodeGroup>
+```bash npm
+npm run seed
+```
+
+```bash yarn
+yarn seed
+```
+
+```bash pnpm
+pnpm seed
+```
+</CodeGroup>
+
+### 6. Running the Application
+
+#### Development Mode
+
+Run the application in development mode with hot reload:
+
+<CodeGroup>
+```bash npm
+npm run start:dev
+```
+
+```bash yarn
+yarn start:dev
+```
+
+```bash pnpm
+pnpm start:dev
+```
+</CodeGroup>
+
+The API will start on `http://localhost:3000` (or your configured PORT).
+
+#### Production Mode
+
+For production deployment:
+
+<CodeGroup>
+```bash npm
+# Build the application
+npm run build
+
+# Start the production server
+npm run start:prod
+```
+
+```bash yarn
+# Build the application
+yarn build
+
+# Start the production server
+yarn start:prod
+```
+
+```bash pnpm
+# Build the application
+pnpm build
+
+# Start the production server
+pnpm start:prod
+```
+</CodeGroup>
+
+#### Debug Mode
+
+To run with debugging enabled:
+
+<CodeGroup>
+```bash npm
+npm run start:debug
+```
+
+```bash yarn
+yarn start:debug
+```
+
+```bash pnpm
+pnpm start:debug
+```
+</CodeGroup>
+
+This starts the application with the Node.js inspector on port 9229.
+
+### 7. Verify Installation
+
+Once the application is running, verify the installation:
+
+```bash
+curl http://localhost:3000
+```
+
+You should receive a response from the API.
+
+Try the signup endpoint to ensure everything is working:
+
+```bash
+curl -X POST http://localhost:3000/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com", "password": "password123"}'
+```
+
+## Application Configuration
+
+### CORS Configuration
+
+CORS is configured in `src/main.ts:9-14` with the following settings:
+
+```typescript
+app.enableCors({
+  origin: true,  // Allows all origins in development
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+  allowedHeaders: 'Content-Type,Authorization',
+  credentials: true,
+});
+```
+
+<Note>
+For production, you should restrict the `origin` to your specific frontend domain(s) instead of allowing all origins.
+</Note>
+
+### Global Validation
+
+The application uses global validation pipes configured in `src/main.ts:15-19`:
+
+```typescript
+app.useGlobalPipes(
+  new ValidationPipe({
+    whitelist: true,  // Strips properties not defined in DTOs
+  }),
+);
+```
+
+This ensures all incoming requests are validated against their respective DTOs using class-validator decorators.
+
+### Static Assets
+
+Static files (like uploaded images) are served from the `public` directory:
+
+```typescript
+app.useStaticAssets(join(__dirname, '..', 'public'));
+```
+
+Create a `public` directory in the root if it doesn't exist:
+
+```bash
+mkdir -p public
+```
+
+## Testing
+
+Run the test suite to ensure everything is set up correctly:
+
+<CodeGroup>
+```bash Unit Tests
+npm run test
+```
+
+```bash E2E Tests
+npm run test:e2e
+```
+
+```bash Test Coverage
+npm run test:cov
+```
+</CodeGroup>
+
+## Additional Scripts
+
+Other useful commands from `package.json`:
+
+```bash
+# Format code with Prettier
+npm run format
+
+# Lint code with ESLint
+npm run lint
+
+# Build for production
+npm run build
+
+# Run tests in watch mode
+npm run test:watch
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="SSL/TLS connection errors">
+    If you encounter SSL connection errors with your database, verify that SSL is properly configured in `src/config/typeorm.config.ts:14-16`:
+
+    ```typescript
+    ssl: {
+      rejectUnauthorized: false,
+    },
+    ```
+
+    For Supabase, SSL is required and this configuration should work by default.
+  </Accordion>
+
+  <Accordion title="Module not found errors">
+    If you get "Cannot find module" errors:
+
+    1. Delete `node_modules` and lock file:
+       ```bash
+       rm -rf node_modules package-lock.json
+       ```
+    2. Reinstall dependencies:
+       ```bash
+       npm install
+       ```
+    3. Clear TypeScript build cache:
+       ```bash
+       rm -rf dist
+       ```
+  </Accordion>
+
+  <Accordion title="TypeORM synchronization issues">
+    If tables aren't being created automatically:
+
+    1. Verify `synchronize: true` in `src/config/typeorm.config.ts:19`
+    2. Check database connection credentials
+    3. Ensure your database user has CREATE TABLE permissions
+    4. Check the console for any TypeORM error messages
+  </Accordion>
+
+  <Accordion title="Supabase authentication not working">
+    Verify your Supabase configuration:
+
+    1. Ensure you're using the **service_role** key, not the **anon** key
+    2. Check that your `SUPABASE_URL` includes the full URL with `https://`
+    3. Verify the Supabase project is active in the dashboard
+    4. Check that email authentication is enabled in Supabase Auth settings
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+Now that you have POS Nest API installed and running:
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Make your first API calls
+  </Card>
+  <Card title="Authentication" icon="shield" href="/concepts/authentication">
+    Learn about auth and authorization
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/auth/signup">
+    Explore all available endpoints
+  </Card>
+  <Card title="Deployment" icon="server" href="/guides/deployment">
+    Deploy to production
+  </Card>
+</CardGroup>

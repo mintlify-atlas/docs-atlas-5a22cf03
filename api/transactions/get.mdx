@@ -1,0 +1,235 @@
+---
+title: 'Get Transaction'
+api: 'GET /transactions/{id}'
+description: 'Retrieve a specific transaction by ID with role-based access control'
+---
+
+## Authentication
+
+Requires JWT authentication. The authenticated user's information is automatically extracted using the `@CurrentUser` decorator.
+
+## Path Parameters
+
+<ParamField path="id" type="number" required>
+  Transaction ID to retrieve
+  
+  Must be a valid integer (validated by `IdValidationPipe`)
+</ParamField>
+
+## Response
+
+<ResponseField name="id" type="number">
+  Unique transaction identifier
+</ResponseField>
+
+<ResponseField name="userId" type="string">
+  UUID of the user who created the transaction
+</ResponseField>
+
+<ResponseField name="total" type="number">
+  Final total amount after discount
+</ResponseField>
+
+<ResponseField name="coupon" type="string">
+  Coupon code applied (null if no coupon)
+</ResponseField>
+
+<ResponseField name="discount" type="number">
+  Discount amount applied
+</ResponseField>
+
+<ResponseField name="transactionDate" type="string">
+  ISO 8601 timestamp when the transaction was created
+</ResponseField>
+
+<ResponseField name="contents" type="array">
+  Array of line items in the transaction
+  
+  <Expandable title="TransactionContents properties">
+    <ResponseField name="id" type="number">
+      Line item identifier
+    </ResponseField>
+    
+    <ResponseField name="quantity" type="number">
+      Quantity purchased
+    </ResponseField>
+    
+    <ResponseField name="price" type="number">
+      Price per unit at time of purchase
+    </ResponseField>
+    
+    <ResponseField name="product" type="object">
+      Product information (eager loaded)
+      
+      <Expandable title="Product properties">
+        <ResponseField name="id" type="number">
+          Product ID
+        </ResponseField>
+        
+        <ResponseField name="name" type="string">
+          Product name
+        </ResponseField>
+        
+        <ResponseField name="description" type="string">
+          Product description
+        </ResponseField>
+        
+        <ResponseField name="price" type="number">
+          Current product price
+        </ResponseField>
+        
+        <ResponseField name="inventory" type="number">
+          Current inventory level
+        </ResponseField>
+        
+        <ResponseField name="category" type="string">
+          Product category
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X GET https://api.example.com/transactions/1 \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.example.com/transactions/1', {
+  headers: {
+    'Authorization': 'Bearer YOUR_TOKEN'
+  }
+});
+
+const transaction = await response.json();
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    'https://api.example.com/transactions/1',
+    headers={'Authorization': 'Bearer YOUR_TOKEN'}
+)
+
+transaction = response.json()
+```
+</RequestExample>
+
+<ResponseExample>
+```json Success Response
+{
+  "id": 1,
+  "userId": "550e8400-e29b-41d4-a716-446655440000",
+  "total": 47.98,
+  "coupon": "SUMMER20",
+  "discount": 11.99,
+  "transactionDate": "2024-03-15T14:30:00.000Z",
+  "contents": [
+    {
+      "id": 1,
+      "quantity": 2,
+      "price": 19.99,
+      "product": {
+        "id": 1,
+        "name": "Wireless Mouse",
+        "description": "Ergonomic wireless mouse with 6 programmable buttons",
+        "price": 19.99,
+        "inventory": 48,
+        "category": "Electronics"
+      }
+    },
+    {
+      "id": 2,
+      "quantity": 1,
+      "price": 19.99,
+      "product": {
+        "id": 5,
+        "name": "USB Cable",
+        "description": "USB-C to USB-A cable, 6ft length",
+        "price": 9.99,
+        "inventory": 199,
+        "category": "Accessories"
+      }
+    }
+  ]
+}
+```
+
+```json Error - Not Found
+{
+  "statusCode": 404,
+  "message": "Transaction with ID 999 not found",
+  "error": "Not Found"
+}
+```
+
+```json Error - Invalid ID Format
+{
+  "statusCode": 400,
+  "message": "Validation failed (numeric string is expected)",
+  "error": "Bad Request"
+}
+```
+</ResponseExample>
+
+## Role-Based Access Control
+
+### Admin Users
+
+Administrators can retrieve **any transaction** regardless of who created it:
+
+```bash
+# Admin can access any transaction
+GET /transactions/1  # ✓ Success (even if created by another user)
+```
+
+### Regular Users
+
+Regular users can only retrieve **their own transactions**:
+
+```bash
+# User can only access their own transactions
+GET /transactions/1  # ✓ Success (if userId matches)
+GET /transactions/2  # ✗ 404 Not Found (if userId doesn't match)
+```
+
+**Security Note:** When a regular user attempts to access another user's transaction, the API returns a `404 Not Found` error (not `403 Forbidden`) to prevent information disclosure about the existence of transactions.
+
+## ID Validation
+
+The `IdValidationPipe` ensures that:
+
+- The ID parameter is a numeric string
+- The ID can be converted to a valid integer
+- Invalid formats (e.g., "abc", "1.5") are rejected with a 400 error
+
+### Valid ID Formats
+
+```bash
+GET /transactions/1      # ✓ Valid
+GET /transactions/42     # ✓ Valid
+GET /transactions/1000   # ✓ Valid
+```
+
+### Invalid ID Formats
+
+```bash
+GET /transactions/abc    # ✗ Invalid (not numeric)
+GET /transactions/1.5    # ✗ Invalid (not an integer)
+GET /transactions/-1     # ✗ Invalid (negative)
+```
+
+<Note>
+  The `@CurrentUser` decorator automatically extracts user information (id and role) from the JWT token to enforce role-based access control.
+</Note>
+
+<Info>
+  Transaction contents include eager-loaded product information. Note that the product price shown is the **current** price, which may differ from the transaction line item price (the price at the time of purchase).
+</Info>
+
+<Warning>
+  Regular users receive a 404 error when trying to access transactions that don't belong to them, making it indistinguishable from a non-existent transaction for security purposes.
+</Warning>

@@ -1,0 +1,165 @@
+---
+title: 'Apply Coupon'
+api: 'POST /coupons/apply-coupon'
+description: 'Validate and apply a coupon code'
+---
+
+<Info>
+  This endpoint is publicly accessible and does not require admin authentication. Any authenticated user can apply coupons.
+</Info>
+
+## Request Body
+
+<ParamField body="name" type="string" required>
+  The coupon code/name to apply
+</ParamField>
+
+## Response
+
+Returns a success message along with the coupon details if valid and not expired.
+
+<ResponseField name="message" type="string">
+  Confirmation message indicating successful coupon application
+</ResponseField>
+
+<ResponseField name="id" type="number">
+  The unique identifier for the coupon
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  The coupon name/code
+</ResponseField>
+
+<ResponseField name="percentage" type="number">
+  The discount percentage to apply (1-100)
+</ResponseField>
+
+<ResponseField name="expirationDate" type="string">
+  The expiration date of the coupon
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X POST https://api.example.com/coupons/apply-coupon \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "SUMMER2026"
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.example.com/coupons/apply-coupon', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_TOKEN',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    name: 'SUMMER2026'
+  })
+});
+
+const result = await response.json();
+console.log(`Discount: ${result.percentage}%`);
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    'https://api.example.com/coupons/apply-coupon',
+    headers={
+        'Authorization': 'Bearer YOUR_TOKEN',
+        'Content-Type': 'application/json'
+    },
+    json={
+        'name': 'SUMMER2026'
+    }
+)
+
+result = response.json()
+print(f"Discount: {result['percentage']}%")
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Success Response
+{
+  "message": "Coupon applied successfully",
+  "id": 1,
+  "name": "SUMMER2026",
+  "percentage": 25,
+  "expirationDate": "2026-08-31"
+}
+```
+
+```json Coupon Not Found
+{
+  "message": "Coupon not found",
+  "error": "Not Found",
+  "statusCode": 404
+}
+```
+
+```json Coupon Expired
+{
+  "message": "Coupon has expired",
+  "error": "Unprocessable Entity",
+  "statusCode": 422
+}
+```
+
+```json Validation Error - Missing Name
+{
+  "message": [
+    "The coupon code is required"
+  ],
+  "error": "Bad Request",
+  "statusCode": 400
+}
+```
+
+</ResponseExample>
+
+## Validation
+
+The endpoint performs the following validations:
+
+1. **Coupon Existence**: Verifies that a coupon with the provided name exists
+2. **Expiration Check**: Validates that the current date is before or on the coupon's expiration date (end of day)
+
+### Expiration Logic
+
+The expiration validation uses `endOfDay()` for the coupon's expiration date, meaning:
+- A coupon with expiration date "2026-08-31" is valid throughout the entire day (until 23:59:59)
+- The coupon expires after midnight on the expiration date
+
+## Use Cases
+
+- Apply discount codes during checkout
+- Validate promotional codes before processing orders
+- Show users the discount percentage they'll receive
+- Provide real-time feedback on coupon validity
+
+## Error Handling
+
+<AccordionGroup>
+  <Accordion title="404 Not Found">
+    The coupon code does not exist in the system. This could mean:
+    - The code was typed incorrectly
+    - The coupon has been deleted
+    - The code has never been created
+  </Accordion>
+  
+  <Accordion title="422 Unprocessable Entity">
+    The coupon exists but has expired. The expiration date has passed, and the coupon can no longer be used.
+  </Accordion>
+  
+  <Accordion title="400 Bad Request">
+    The request validation failed. The coupon name/code was not provided in the request body.
+  </Accordion>
+</AccordionGroup>

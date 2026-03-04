@@ -1,0 +1,241 @@
+---
+title: Environment Setup
+description: Set up your development environment for the POS Nest API
+---
+
+This guide walks you through setting up your local development environment for the POS Nest API project.
+
+## Prerequisites
+
+### Node.js and npm
+
+The POS Nest API requires Node.js and npm to be installed on your system.
+
+<Steps>
+  <Step title="Check Node.js version">
+    Verify you have Node.js installed (v18 or higher recommended):
+    
+    ```bash
+    node --version
+    npm --version
+    ```
+  </Step>
+  
+  <Step title="Install Node.js (if needed)">
+    If you don't have Node.js installed, download it from [nodejs.org](https://nodejs.org/) or use a version manager like [nvm](https://github.com/nvm-sh/nvm):
+    
+    ```bash
+    # Using nvm
+    nvm install 18
+    nvm use 18
+    ```
+  </Step>
+</Steps>
+
+### PostgreSQL
+
+The API uses PostgreSQL as its database.
+
+<Steps>
+  <Step title="Install PostgreSQL">
+    Download and install PostgreSQL from [postgresql.org](https://www.postgresql.org/download/) or use your system's package manager:
+    
+    ```bash
+    # macOS (using Homebrew)
+    brew install postgresql@15
+    brew services start postgresql@15
+    
+    # Ubuntu/Debian
+    sudo apt update
+    sudo apt install postgresql postgresql-contrib
+    sudo systemctl start postgresql
+    
+    # Windows
+    # Download installer from postgresql.org
+    ```
+  </Step>
+  
+  <Step title="Verify PostgreSQL installation">
+    ```bash
+    psql --version
+    ```
+  </Step>
+</Steps>
+
+<Note>
+  Alternatively, you can use a cloud PostgreSQL service like Supabase, AWS RDS, or Heroku Postgres instead of installing locally.
+</Note>
+
+### Supabase Account
+
+This API uses Supabase for authentication.
+
+<Steps>
+  <Step title="Create a Supabase account">
+    Go to [supabase.com](https://supabase.com) and sign up for a free account.
+  </Step>
+  
+  <Step title="Create a new project">
+    - Click "New Project"
+    - Choose your organization
+    - Enter a project name
+    - Set a strong database password
+    - Select a region close to you
+    - Click "Create new project"
+  </Step>
+  
+  <Step title="Get your credentials">
+    Once your project is created:
+    - Go to Project Settings > API
+    - Copy your `URL` and `service_role` key (you'll need these for environment variables)
+  </Step>
+</Steps>
+
+<Warning>
+  The `service_role` key bypasses Row Level Security. Keep it secret and never expose it in client-side code or public repositories.
+</Warning>
+
+## Environment Variables
+
+Create a `.env` file in the root of your project with the following variables:
+
+```bash
+# Server Configuration
+PORT=3000
+
+# Database Configuration
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_USER=postgres
+DATABASE_PASS=your_database_password
+DATABASE_NAME=pos_nest_db
+
+# Supabase Configuration
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```
+
+### Environment Variable Reference
+
+| Variable | Description | Required | Example |
+|----------|-------------|----------|---------|
+| `PORT` | Port number for the API server | No (defaults to 3000) | `3000` |
+| `DATABASE_HOST` | PostgreSQL host address | Yes | `localhost` |
+| `DATABASE_PORT` | PostgreSQL port number | Yes | `5432` |
+| `DATABASE_USER` | PostgreSQL username | Yes | `postgres` |
+| `DATABASE_PASS` | PostgreSQL password | Yes | `mypassword` |
+| `DATABASE_NAME` | PostgreSQL database name | Yes | `pos_nest_db` |
+| `SUPABASE_URL` | Your Supabase project URL | Yes | `https://xxx.supabase.co` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | Yes | `eyJhbGciOiJIUzI1NiIsInR5cCI6...` |
+
+<Note>
+  All environment variables are loaded using `@nestjs/config` which is configured as a global module in the application.
+</Note>
+
+## Development vs Production Configuration
+
+### Development Environment
+
+For local development, use the `.env` file with local database credentials:
+
+```bash
+# Development .env
+PORT=3000
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_USER=postgres
+DATABASE_PASS=postgres
+DATABASE_NAME=pos_nest_dev
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-dev-service-role-key
+```
+
+### Production Environment
+
+For production, set environment variables through your hosting platform (Heroku, AWS, etc.) rather than using a `.env` file:
+
+```bash
+# Production environment variables
+PORT=3000
+DATABASE_HOST=your-production-db-host.com
+DATABASE_PORT=5432
+DATABASE_USER=prod_user
+DATABASE_PASS=strong_production_password
+DATABASE_NAME=pos_nest_prod
+SUPABASE_URL=https://your-prod-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-prod-service-role-key
+```
+
+<Warning>
+  - Never commit `.env` files to version control
+  - Use strong, unique passwords for production databases
+  - Consider using managed database services for production
+  - The application uses SSL for database connections with `rejectUnauthorized: false` - consider enabling strict SSL verification in production
+</Warning>
+
+## Installing Dependencies
+
+Once you have Node.js installed and environment variables configured:
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone <repository-url>
+    cd pos-nest
+    ```
+  </Step>
+  
+  <Step title="Install dependencies">
+    ```bash
+    npm install
+    ```
+    
+    This will install all dependencies listed in `package.json`, including:
+    - NestJS framework (`@nestjs/core`, `@nestjs/common`)
+    - TypeORM and PostgreSQL driver (`typeorm`, `pg`)
+    - Supabase client (`@supabase/supabase-js`)
+    - Validation libraries (`class-validator`, `class-transformer`)
+  </Step>
+  
+  <Step title="Verify installation">
+    ```bash
+    npm run build
+    ```
+    
+    This compiles the TypeScript code and verifies everything is set up correctly.
+  </Step>
+</Steps>
+
+## Verify Your Setup
+
+Check that everything is configured correctly:
+
+```bash
+# Check Node.js
+node --version  # Should be v18+
+
+# Check npm
+npm --version
+
+# Check PostgreSQL
+psql --version
+
+# Verify .env file exists
+ls -la .env
+
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+```
+
+## Next Steps
+
+<Card title="Database Setup" icon="database" href="/guides/database-setup">
+  Learn how to create and configure your PostgreSQL database
+</Card>
+
+<Card title="API Reference" icon="code" href="/api/auth/signup">
+  Start exploring the API endpoints
+</Card>

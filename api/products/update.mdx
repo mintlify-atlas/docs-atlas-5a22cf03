@@ -1,0 +1,210 @@
+---
+title: "Update Product"
+api: "PATCH /products/{id}"
+---
+
+Update an existing product's information. All fields are optional.
+
+## Authentication
+
+This endpoint requires authentication with the `admin` role.
+
+## Path Parameters
+
+<ParamField path="id" type="integer" required>
+  The unique identifier of the product to update
+</ParamField>
+
+## Request Body
+
+All fields are optional. Only include the fields you want to update.
+
+<ParamField body="name" type="string">
+  The product name (max 60 characters)
+</ParamField>
+
+<ParamField body="price" type="number">
+  The product price (max 2 decimal places)
+</ParamField>
+
+<ParamField body="image" type="string">
+  The product image URL or filename
+</ParamField>
+
+<ParamField body="inventory" type="number">
+  The quantity in stock (integer)
+</ParamField>
+
+<ParamField body="categoryId" type="integer">
+  The ID of the category this product belongs to
+</ParamField>
+
+## Response
+
+<ResponseField name="id" type="integer">
+  The unique identifier for the product
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  The updated product name
+</ResponseField>
+
+<ResponseField name="price" type="number">
+  The updated product price
+</ResponseField>
+
+<ResponseField name="image" type="string">
+  The updated product image URL or filename
+</ResponseField>
+
+<ResponseField name="inventory" type="number">
+  The updated quantity in stock
+</ResponseField>
+
+<ResponseField name="categoryId" type="integer">
+  The updated category ID
+</ResponseField>
+
+<ResponseField name="category" type="object">
+  The category object with full details
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL - Update Price
+curl -X PATCH https://api.example.com/products/123 \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "price": 15.99
+  }'
+```
+
+```bash cURL - Update Multiple Fields
+curl -X PATCH https://api.example.com/products/123 \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Premium Espresso Coffee",
+    "price": 15.99,
+    "inventory": 75
+  }'
+```
+
+```javascript JavaScript
+// Update a single field
+const response = await fetch('https://api.example.com/products/123', {
+  method: 'PATCH',
+  headers: {
+    'Authorization': 'Bearer YOUR_TOKEN',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    price: 15.99
+  })
+});
+
+const product = await response.json();
+
+// Update multiple fields
+const updateResponse = await fetch('https://api.example.com/products/123', {
+  method: 'PATCH',
+  headers: {
+    'Authorization': 'Bearer YOUR_TOKEN',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    name: 'Premium Espresso Coffee',
+    price: 15.99,
+    inventory: 75
+  })
+});
+
+const updatedProduct = await updateResponse.json();
+```
+
+```python Python
+import requests
+
+# Update a single field
+response = requests.patch(
+    'https://api.example.com/products/123',
+    headers={'Authorization': 'Bearer YOUR_TOKEN'},
+    json={'price': 15.99}
+)
+
+product = response.json()
+
+# Update multiple fields
+update_response = requests.patch(
+    'https://api.example.com/products/123',
+    headers={'Authorization': 'Bearer YOUR_TOKEN'},
+    json={
+        'name': 'Premium Espresso Coffee',
+        'price': 15.99,
+        'inventory': 75
+    }
+)
+
+updated_product = update_response.json()
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Response
+{
+  "id": 123,
+  "name": "Premium Espresso Coffee",
+  "price": 15.99,
+  "image": "espresso.jpg",
+  "inventory": 75,
+  "categoryId": 1,
+  "category": {
+    "id": 1,
+    "name": "Beverages",
+    "image": "beverages.jpg"
+  }
+}
+```
+
+</ResponseExample>
+
+## Errors
+
+<ResponseField name="statusCode" type="integer">
+  HTTP status code
+</ResponseField>
+
+<ResponseField name="message" type="array">
+  Array of error messages
+</ResponseField>
+
+<ResponseExample>
+
+```json 404 - Product Not Found
+{
+  "statusCode": 404,
+  "message": ["Product not found"]
+}
+```
+
+```json 404 - Category Not Found
+{
+  "statusCode": 404,
+  "message": ["Category not found"]
+}
+```
+
+```json 400 - Validation Error
+{
+  "statusCode": 400,
+  "message": [
+    "The product price must be a number."
+  ],
+  "error": "Bad Request"
+}
+```
+
+</ResponseExample>

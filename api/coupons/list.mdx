@@ -1,0 +1,113 @@
+---
+title: 'List Coupons'
+api: 'GET /coupons'
+description: 'Retrieve all coupons in the system'
+---
+
+<Warning>
+  This endpoint requires admin authentication. Include a valid admin JWT token in the Authorization header.
+</Warning>
+
+## Response
+
+Returns an array of all coupon objects in the system.
+
+<ResponseField name="coupons" type="array">
+  Array of coupon objects
+  
+  <Expandable title="Coupon Object">
+    <ResponseField name="id" type="number">
+      The unique identifier for the coupon
+    </ResponseField>
+    
+    <ResponseField name="name" type="string">
+      The coupon name/code
+    </ResponseField>
+    
+    <ResponseField name="percentage" type="number">
+      The discount percentage (1-100)
+    </ResponseField>
+    
+    <ResponseField name="expirationDate" type="string">
+      The expiration date
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X GET https://api.example.com/coupons \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.example.com/coupons', {
+  method: 'GET',
+  headers: {
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN'
+  }
+});
+
+const coupons = await response.json();
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    'https://api.example.com/coupons',
+    headers={
+        'Authorization': 'Bearer YOUR_ADMIN_TOKEN'
+    }
+)
+
+coupons = response.json()
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Success Response
+[
+  {
+    "id": 1,
+    "name": "SUMMER2026",
+    "percentage": 25,
+    "expirationDate": "2026-08-31"
+  },
+  {
+    "id": 2,
+    "name": "NEWYEAR2026",
+    "percentage": 15,
+    "expirationDate": "2026-01-15"
+  },
+  {
+    "id": 3,
+    "name": "BLACKFRIDAY",
+    "percentage": 50,
+    "expirationDate": "2026-11-30"
+  }
+]
+```
+
+```json Empty Response
+[]
+```
+
+```json Unauthorized
+{
+  "message": "Unauthorized",
+  "statusCode": 401
+}
+```
+
+</ResponseExample>
+
+## Use Cases
+
+- View all available coupons for admin management
+- Check expiration dates of existing coupons
+- Audit discount percentages across all coupons
+- List coupons for administrative dashboards

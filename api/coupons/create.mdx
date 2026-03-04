@@ -1,0 +1,151 @@
+---
+title: 'Create Coupon'
+api: 'POST /coupons'
+description: 'Create a new coupon with discount percentage and expiration date'
+---
+
+<Warning>
+  This endpoint requires admin authentication. Include a valid admin JWT token in the Authorization header.
+</Warning>
+
+## Request Body
+
+<ParamField body="name" type="string" required>
+  The unique name/code for the coupon (max 30 characters)
+</ParamField>
+
+<ParamField body="percentage" type="number" required>
+  The discount percentage. Must be an integer between 1 and 100
+</ParamField>
+
+<ParamField body="expirationDate" type="string" required>
+  The expiration date in ISO 8601 date string format (e.g., "2026-12-31")
+</ParamField>
+
+## Response
+
+Returns the created coupon object with the assigned ID.
+
+<ResponseField name="id" type="number">
+  The unique identifier for the coupon
+</ResponseField>
+
+<ResponseField name="name" type="string">
+  The coupon name/code
+</ResponseField>
+
+<ResponseField name="percentage" type="number">
+  The discount percentage
+</ResponseField>
+
+<ResponseField name="expirationDate" type="string">
+  The expiration date
+</ResponseField>
+
+<RequestExample>
+
+```bash cURL
+curl -X POST https://api.example.com/coupons \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "SUMMER2026",
+    "percentage": 25,
+    "expirationDate": "2026-08-31"
+  }'
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.example.com/coupons', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    name: 'SUMMER2026',
+    percentage: 25,
+    expirationDate: '2026-08-31'
+  })
+});
+
+const coupon = await response.json();
+```
+
+```python Python
+import requests
+
+response = requests.post(
+    'https://api.example.com/coupons',
+    headers={
+        'Authorization': 'Bearer YOUR_ADMIN_TOKEN',
+        'Content-Type': 'application/json'
+    },
+    json={
+        'name': 'SUMMER2026',
+        'percentage': 25,
+        'expirationDate': '2026-08-31'
+    }
+)
+
+coupon = response.json()
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```json Success Response
+{
+  "id": 1,
+  "name": "SUMMER2026",
+  "percentage": 25,
+  "expirationDate": "2026-08-31"
+}
+```
+
+```json Validation Error - Missing Name
+{
+  "message": [
+    "The coupon name is required"
+  ],
+  "error": "Bad Request",
+  "statusCode": 400
+}
+```
+
+```json Validation Error - Invalid Percentage
+{
+  "message": [
+    "The discount must be between 1 and 100",
+    "The maximum discount is 100"
+  ],
+  "error": "Bad Request",
+  "statusCode": 400
+}
+```
+
+```json Validation Error - Invalid Date
+{
+  "message": [
+    "The expiration date must be a valid date string"
+  ],
+  "error": "Bad Request",
+  "statusCode": 400
+}
+```
+
+```json Unauthorized
+{
+  "message": "Unauthorized",
+  "statusCode": 401
+}
+```
+
+</ResponseExample>
+
+## Validation Rules
+
+- **name**: Required, maximum 30 characters
+- **percentage**: Required, must be an integer between 1 and 100 (inclusive)
+- **expirationDate**: Required, must be a valid ISO 8601 date string format

@@ -1,80 +1,293 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get POS Nest API running in 5 minutes with this step-by-step guide
 ---
 
-## Get started in three steps
+# Quickstart Guide
 
-Get your documentation site running locally and make your first customization.
-
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+Get POS Nest API up and running in just a few minutes. This guide will walk you through cloning the repository, setting up your environment, and making your first API call.
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+Before starting, ensure you have Node.js 18+ and PostgreSQL installed, or a Supabase account for hosted PostgreSQL.
 </Note>
+
+## Getting Started
+
+<Steps>
+  <Step title="Clone the Repository">
+    Clone the POS Nest API repository to your local machine:
+
+    ```bash
+    git clone <repository-url>
+    cd pos-nest
+    ```
+  </Step>
+
+  <Step title="Install Dependencies">
+    Install all required npm packages:
+
+    <CodeGroup>
+    ```bash npm
+    npm install
+    ```
+
+    ```bash yarn
+    yarn install
+    ```
+
+    ```bash pnpm
+    pnpm install
+    ```
+    </CodeGroup>
+
+    This will install all dependencies including:
+    - NestJS core packages (v11.0.1)
+    - TypeORM (v0.3.28)
+    - Supabase JS client (v2.97.0)
+    - PostgreSQL driver
+    - Validation libraries
+  </Step>
+
+  <Step title="Configure Environment Variables">
+    Create a `.env` file in the root directory with your configuration:
+
+    ```bash .env
+    # Server Configuration
+    PORT=3000
+
+    # Database Configuration (PostgreSQL)
+    DATABASE_HOST=your-database-host
+    DATABASE_PORT=5432
+    DATABASE_USER=your-database-user
+    DATABASE_PASS=your-database-password
+    DATABASE_NAME=pos_nest_db
+
+    # Supabase Configuration
+    SUPABASE_URL=https://your-project.supabase.co
+    SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+    SUPABASE_BUCKET=products
+    ```
+
+    <Warning>
+    Never commit your `.env` file to version control. Keep your `SUPABASE_SERVICE_ROLE_KEY` secure as it provides admin access to your Supabase project.
+    </Warning>
+  </Step>
+
+  <Step title="Start the Development Server">
+    Run the API in development mode with hot reload:
+
+    <CodeGroup>
+    ```bash npm
+    npm run start:dev
+    ```
+
+    ```bash yarn
+    yarn start:dev
+    ```
+
+    ```bash pnpm
+    pnpm start:dev
+    ```
+    </CodeGroup>
+
+    You should see output indicating the server is running:
+
+    ```bash
+    [Nest] 12345  - 03/04/2026, 10:00:00 AM     LOG [NestFactory] Starting Nest application...
+    [Nest] 12345  - 03/04/2026, 10:00:00 AM     LOG [InstanceLoader] AppModule dependencies initialized
+    [Nest] 12345  - 03/04/2026, 10:00:00 AM     LOG [NestApplication] Nest application successfully started
+    ```
+
+    The API is now running at `http://localhost:3000`
+  </Step>
+
+  <Step title="Create Your First User">
+    Make a signup request to create your first user account:
+
+    ```bash cURL
+    curl -X POST http://localhost:3000/auth/signup \
+      -H "Content-Type: application/json" \
+      -d '{
+        "email": "user@example.com",
+        "password": "secure_password123"
+      }'
+    ```
+
+    <CodeGroup>
+    ```javascript JavaScript
+    const response = await fetch('http://localhost:3000/auth/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: 'user@example.com',
+        password: 'secure_password123'
+      })
+    });
+
+    const data = await response.json();
+    console.log(data);
+    ```
+
+    ```python Python
+    import requests
+
+    response = requests.post(
+        'http://localhost:3000/auth/signup',
+        json={
+            'email': 'user@example.com',
+            'password': 'secure_password123'
+        }
+    )
+
+    print(response.json())
+    ```
+    </CodeGroup>
+
+    **Expected Response:**
+
+    ```json
+    {
+      "user": {
+        "id": "uuid-here",
+        "email": "user@example.com",
+        "created_at": "2026-03-04T10:00:00.000Z"
+      },
+      "session": {
+        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+        "refresh_token": "...",
+        "expires_in": 3600
+      }
+    }
+    ```
+
+    <Note>
+    The password must be at least 6 characters long due to validation rules in `src/auth/dto/sign-up.dto.ts`
+    </Note>
+  </Step>
+
+  <Step title="Sign In and Get Access Token">
+    Sign in with your credentials to get an access token:
+
+    ```bash cURL
+    curl -X POST http://localhost:3000/auth/signin \
+      -H "Content-Type: application/json" \
+      -d '{
+        "email": "user@example.com",
+        "password": "secure_password123"
+      }'
+    ```
+
+    **Expected Response:**
+
+    ```json
+    {
+      "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "refresh_token": "...",
+      "expires_in": 3600,
+      "user": {
+        "id": "uuid-here",
+        "email": "user@example.com"
+      }
+    }
+    ```
+
+    Save the `access_token` - you'll need it for authenticated requests.
+  </Step>
+
+  <Step title="Make an Authenticated Request">
+    Use your access token to make authenticated API calls. For example, fetch categories:
+
+    ```bash cURL
+    curl -X GET http://localhost:3000/categories \
+      -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+    ```
+
+    ```javascript JavaScript
+    const response = await fetch('http://localhost:3000/categories', {
+      headers: {
+        'Authorization': 'Bearer YOUR_ACCESS_TOKEN'
+      }
+    });
+
+    const categories = await response.json();
+    console.log(categories);
+    ```
+  </Step>
+</Steps>
+
+## What's Next?
+
+Congratulations! You now have POS Nest API running locally. Here are some next steps:
+
+<CardGroup cols={2}>
+  <Card title="API Reference" icon="book" href="/api/auth/signup">
+    Explore all available endpoints
+  </Card>
+  <Card title="Authentication" icon="lock" href="/concepts/authentication">
+    Learn about authentication and authorization
+  </Card>
+  <Card title="Products" icon="box" href="/api/products/create">
+    Manage products and inventory
+  </Card>
+  <Card title="Transactions" icon="credit-card" href="/api/transactions/create">
+    Process sales transactions
+  </Card>
+</CardGroup>
+
+## Common Issues
+
+<AccordionGroup>
+  <Accordion title="Port 3000 already in use">
+    If port 3000 is already in use, you can change it in your `.env` file:
+
+    ```bash
+    PORT=3001
+    ```
+
+    Or set it when starting the server:
+
+    ```bash
+    PORT=3001 npm run start:dev
+    ```
+  </Accordion>
+
+  <Accordion title="Database connection failed">
+    Verify your database credentials in the `.env` file match your PostgreSQL or Supabase configuration. The connection settings are loaded in `src/config/typeorm.config.ts:9-13`.
+
+    If using Supabase, ensure:
+    - Your project is active
+    - Database password is correct
+    - Host includes the correct region
+  </Accordion>
+
+  <Accordion title="Supabase authentication errors">
+    Double-check your Supabase configuration:
+    - `SUPABASE_URL` should be your project URL (e.g., `https://xxxxx.supabase.co`)
+    - `SUPABASE_SERVICE_ROLE_KEY` is the service role key, not the anon key
+    - The service role key can be found in Supabase Dashboard under Settings > API
+  </Accordion>
+
+  <Accordion title="Validation errors when signing up">
+    The signup endpoint validates:
+    - Email must be a valid email format
+    - Password must be at least 6 characters
+
+    These validations are defined in `src/auth/dto/sign-up.dto.ts:1-12`
+  </Accordion>
+</AccordionGroup>
+
+## Development Tips
+
+<Tip>
+**Watch Mode**: The `start:dev` command uses NestJS watch mode, which automatically reloads when you make changes to your code.
+</Tip>
+
+<Tip>
+**Debug Mode**: For debugging, use `npm run start:debug` to enable Node.js inspector on port 9229.
+</Tip>
+
+<Tip>
+**CORS**: CORS is enabled by default in `src/main.ts:9-14` with credentials support. Adjust the configuration if you need to restrict origins.
+</Tip>

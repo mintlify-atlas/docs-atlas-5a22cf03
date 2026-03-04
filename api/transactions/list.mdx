@@ -1,0 +1,253 @@
+---
+title: 'List Transactions'
+api: 'GET /transactions'
+description: 'Retrieve all transactions with optional date filtering and role-based access control'
+---
+
+## Authentication
+
+Requires JWT authentication. The authenticated user's information is automatically extracted using the `@CurrentUser` decorator.
+
+## Query Parameters
+
+<ParamField query="transactionDate" type="string">
+  Filter transactions by date (ISO 8601 format: YYYY-MM-DD)
+  
+  Returns all transactions that occurred on the specified date (from start to end of day)
+</ParamField>
+
+## Response
+
+<ResponseField name="transactions" type="array">
+  Array of transaction objects
+  
+  <Expandable title="Transaction properties">
+    <ResponseField name="id" type="number">
+      Unique transaction identifier
+    </ResponseField>
+    
+    <ResponseField name="userId" type="string">
+      UUID of the user who created the transaction
+    </ResponseField>
+    
+    <ResponseField name="total" type="number">
+      Final total amount after discount
+    </ResponseField>
+    
+    <ResponseField name="coupon" type="string">
+      Coupon code applied (null if no coupon)
+    </ResponseField>
+    
+    <ResponseField name="discount" type="number">
+      Discount amount applied
+    </ResponseField>
+    
+    <ResponseField name="transactionDate" type="string">
+      ISO 8601 timestamp when the transaction was created
+    </ResponseField>
+    
+    <ResponseField name="contents" type="array">
+      Array of line items in the transaction
+      
+      <Expandable title="TransactionContents properties">
+        <ResponseField name="id" type="number">
+          Line item identifier
+        </ResponseField>
+        
+        <ResponseField name="quantity" type="number">
+          Quantity purchased
+        </ResponseField>
+        
+        <ResponseField name="price" type="number">
+          Price per unit at time of purchase
+        </ResponseField>
+        
+        <ResponseField name="product" type="object">
+          Product information (eager loaded)
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+```bash cURL - All Transactions
+curl -X GET https://api.example.com/transactions \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+```bash cURL - Filter by Date
+curl -X GET "https://api.example.com/transactions?transactionDate=2024-03-15" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+```javascript JavaScript
+// Get all transactions
+const response = await fetch('https://api.example.com/transactions', {
+  headers: {
+    'Authorization': 'Bearer YOUR_TOKEN'
+  }
+});
+
+const transactions = await response.json();
+
+// Filter by date
+const dateResponse = await fetch(
+  'https://api.example.com/transactions?transactionDate=2024-03-15',
+  {
+    headers: {
+      'Authorization': 'Bearer YOUR_TOKEN'
+    }
+  }
+);
+
+const filteredTransactions = await dateResponse.json();
+```
+
+```python Python
+import requests
+
+# Get all transactions
+response = requests.get(
+    'https://api.example.com/transactions',
+    headers={'Authorization': 'Bearer YOUR_TOKEN'}
+)
+
+transactions = response.json()
+
+# Filter by date
+response = requests.get(
+    'https://api.example.com/transactions',
+    headers={'Authorization': 'Bearer YOUR_TOKEN'},
+    params={'transactionDate': '2024-03-15'}
+)
+
+filtered_transactions = response.json()
+```
+</RequestExample>
+
+<ResponseExample>
+```json Success Response
+[
+  {
+    "id": 1,
+    "userId": "550e8400-e29b-41d4-a716-446655440000",
+    "total": 47.98,
+    "coupon": "SUMMER20",
+    "discount": 11.99,
+    "transactionDate": "2024-03-15T14:30:00.000Z",
+    "contents": [
+      {
+        "id": 1,
+        "quantity": 2,
+        "price": 19.99,
+        "product": {
+          "id": 1,
+          "name": "Wireless Mouse",
+          "description": "Ergonomic wireless mouse",
+          "price": 19.99,
+          "inventory": 48,
+          "category": "Electronics"
+        }
+      },
+      {
+        "id": 2,
+        "quantity": 1,
+        "price": 19.99,
+        "product": {
+          "id": 5,
+          "name": "USB Cable",
+          "description": "USB-C to USB-A cable",
+          "price": 9.99,
+          "inventory": 199,
+          "category": "Accessories"
+        }
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "userId": "550e8400-e29b-41d4-a716-446655440000",
+    "total": 29.99,
+    "coupon": null,
+    "discount": 0,
+    "transactionDate": "2024-03-15T16:45:00.000Z",
+    "contents": [
+      {
+        "id": 3,
+        "quantity": 1,
+        "price": 29.99,
+        "product": {
+          "id": 3,
+          "name": "Mechanical Keyboard",
+          "description": "RGB mechanical keyboard",
+          "price": 29.99,
+          "inventory": 24,
+          "category": "Electronics"
+        }
+      }
+    ]
+  }
+]
+```
+
+```json Error - Invalid Date Format
+{
+  "statusCode": 400,
+  "message": "Invalid date format",
+  "error": "Bad Request"
+}
+```
+</ResponseExample>
+
+## Role-Based Access Control
+
+### Admin Users
+
+Administrators can see **all transactions** from all users:
+
+```json
+// Admin sees all transactions regardless of userId
+[
+  { "id": 1, "userId": "user-123", ... },
+  { "id": 2, "userId": "user-456", ... },
+  { "id": 3, "userId": "user-789", ... }
+]
+```
+
+### Regular Users
+
+Regular users can only see **their own transactions**:
+
+```json
+// User with ID "user-123" only sees their transactions
+[
+  { "id": 1, "userId": "user-123", ... }
+]
+```
+
+## Date Filtering
+
+When using the `transactionDate` query parameter:
+
+- Date must be in ISO 8601 format (YYYY-MM-DD)
+- Returns transactions from **start of day (00:00:00)** to **end of day (23:59:59)**
+- Invalid date formats return a 400 Bad Request error
+- Date filtering works in combination with role-based access control
+
+### Example Date Filter
+
+```bash
+GET /transactions?transactionDate=2024-03-15
+
+# Returns all transactions between:
+# 2024-03-15T00:00:00.000Z and 2024-03-15T23:59:59.999Z
+```
+
+<Note>
+  The `@CurrentUser` decorator automatically extracts user information (id and role) from the JWT token to enforce role-based access control.
+</Note>
+
+<Info>
+  Transaction contents include eager-loaded product information, so you get complete product details without additional requests.
+</Info>
