@@ -1,0 +1,131 @@
+{
+  "projectType": "api-service",
+  "projectName": "POS Nest API",
+  "projectDescription": "A NestJS-powered Point of Sale REST API with authentication, product management, transactions, and coupon support.",
+  "theme": "linden",
+  "primaryColor": "#de2850",
+  "lightColor": "#e08cac",
+  "darkColor": null,
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/architecture",
+              "concepts/authentication",
+              "concepts/database",
+              "concepts/error-handling"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/environment-setup",
+              "guides/database-setup",
+              "guides/deployment"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Authentication",
+            "pages": [
+              "api/auth/signup",
+              "api/auth/signin",
+              "api/auth/create-admin"
+            ]
+          },
+          {
+            "group": "Categories",
+            "pages": [
+              "api/categories/create",
+              "api/categories/list",
+              "api/categories/get",
+              "api/categories/update",
+              "api/categories/delete"
+            ]
+          },
+          {
+            "group": "Products",
+            "pages": [
+              "api/products/create",
+              "api/products/list",
+              "api/products/get",
+              "api/products/update",
+              "api/products/delete",
+              "api/products/upload-image"
+            ]
+          },
+          {
+            "group": "Transactions",
+            "pages": [
+              "api/transactions/create",
+              "api/transactions/list",
+              "api/transactions/get",
+              "api/transactions/delete"
+            ]
+          },
+          {
+            "group": "Coupons",
+            "pages": [
+              "api/coupons/create",
+              "api/coupons/list",
+              "api/coupons/get",
+              "api/coupons/update",
+              "api/coupons/delete",
+              "api/coupons/apply"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Role-based authentication with Supabase",
+    "Product and category management",
+    "Transaction processing with coupon support",
+    "Image upload for products",
+    "TypeORM database integration",
+    "RESTful API architecture"
+  ],
+  "publicApiSurface": [
+    "POST /auth/signup",
+    "POST /auth/signin",
+    "POST /auth/create-admin",
+    "GET /categories",
+    "POST /categories",
+    "GET /categories/:id",
+    "PATCH /categories/:id",
+    "DELETE /categories/:id",
+    "GET /products",
+    "POST /products",
+    "GET /products/:id",
+    "PATCH /products/:id",
+    "DELETE /products/:id",
+    "POST /products/upload-image",
+    "GET /transactions",
+    "POST /transactions",
+    "GET /transactions/:id",
+    "DELETE /transactions/:id",
+    "GET /coupons",
+    "POST /coupons",
+    "GET /coupons/:id",
+    "PATCH /coupons/:id",
+    "DELETE /coupons/:id",
+    "POST /coupons/apply-coupon"
+  ]
+}
